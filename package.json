@@ -46,16 +46,16 @@
     "stylelint-config-recommended-vue": "^1.4.0",
     "stylelint-config-standard": "^28.0.0",
     "typescript": "^4.9.4",
-    "vitest": "^0.25.5"
-  },
-  "dependencies": {
+    "vitest": "^0.25.5",
     "@apollo/client": "^3.7.2",
-    "@mdi/font": "^7.0.96",
     "@nhost/apollo": "^0.5.35",
     "@nhost/vue": "^0.6.2",
-    "@pinia/nuxt": "^0.4.6",
     "@vue/apollo-composable": "^4.0.0-beta.1",
-    "graphql": "^16.6.0",
+    "graphql": "^16.6.0"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.0.96",
+    "@pinia/nuxt": "^0.4.6",
     "sass": "^1.56.1",
     "vuetify": "^3.0.4"
   },
