@@ -62,8 +62,12 @@ watchEffect(async () => {
     isError.value,
     error.value
   )
-  if (isSuccess.value) {
+  if (token.value) {
     nhost.graphql.setAccessToken(token.value as string)
+    const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
+    console.log('[data]: ', data)
+    console.log('[error]: ', gqError)
+    await onLogin(token.value as string)
   }
   /* if (!loading.value && !gqErr.value) {
     jobs.value = result.value.jobs
@@ -73,14 +77,10 @@ watchEffect(async () => {
     result.value,
     gqErr.value,
   ) */
-  const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
-  console.log('[data]: ', data)
-  console.log('[error]: ', gqError)
 })
 
 onMounted(async () => {
   await signInEmailPassword('seeker@example.com', 'password')
-  await onLogin(token.value as string)
   
   console.log('[isAuthenticated]: ', isAuthenticated.value)
   

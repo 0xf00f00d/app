@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   apollo: {
     clients: {
       default: {
-        httpEndpoint: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
+        httpEndpoint: process.env.NODE_ENV === 'production' ? 'https://imdqkmbpvhpfbrhpxgwp.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
       }
     },
   },
@@ -32,8 +32,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      backendUrl: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
-      subdomain: process.env.NODE_ENV === 'production' ? 'edvtkshmocpxjwjlxyck' : 'localhost',
+      backendUrl: process.env.NODE_ENV === 'production' ? 'https://imdqkmbpvhpfbrhpxgwp.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
+      subdomain: process.env.NODE_ENV === 'production' ? 'imdqkmbpvhpfbrhpxgwp' : 'localhost',
       region: process.env.NODE_ENV === 'production' ? 'ap-southeast-1' : '',
       env: process.env.NODE_ENV,
     },
