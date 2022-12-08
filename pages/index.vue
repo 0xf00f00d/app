@@ -1,29 +1,37 @@
 <template>
-  <v-app :theme="theme">
-    <v-app-bar>
-      <v-spacer></v-spacer>
+  <v-container>
+    <v-row>
+      <v-col cols="12" sm="2">
+        <v-sheet rounded="lg" min-height="268">
+          <!--  -->
+        </v-sheet>
+      </v-col>
 
-      <v-btn
-        :prepend-icon="
-          theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'
-        "
-        @click="onClick"
-        >Toggle Theme</v-btn
-      >
-    </v-app-bar>
+      <v-col cols="12" sm="8">
+        <v-sheet min-height="70vh" rounded="lg">
+          <!--  -->
+        </v-sheet>
+      </v-col>
 
-    <v-main>
-      <v-container>Content area</v-container>
-    </v-main>
-  </v-app>
+      <v-col cols="12" sm="2">
+        <v-sheet rounded="lg" min-height="268">
+          <!--  -->
+        </v-sheet>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { gql } from '@apollo/client/core'
 
-const theme = ref('light')
-
-function onClick() {
-  theme.value = theme.value === 'light' ? 'dark' : 'light'
-}
+useQuery(gql`
+  query Books {
+    books {
+      id
+      title
+    }
+  }
+`)
 </script>
