@@ -8,7 +8,12 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   ssr: true,
-  modules: ['@pinia/nuxt', 'nuxt-windicss', '@kevinmarrec/nuxt-pwa'],
+  modules: [
+    '@pinia/nuxt',
+    'nuxt-windicss',
+    '@kevinmarrec/nuxt-pwa',
+    '@nuxtjs/apollo',
+  ],
   pwa: {
     workbox: {
       enabled: true,
@@ -16,5 +21,12 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: 'vercel',
+  },
+  apollo: {
+    clients: {
+      default: {
+        httpEndpoint: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:1337/v1/graphql'
+      }
+    },
   },
 })
