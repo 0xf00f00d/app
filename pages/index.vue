@@ -25,9 +25,10 @@
 <script lang="ts" setup>
 import { useAccessToken, useAuthenticated, useNhostClient, useSignInEmailPassword } from '@nhost/vue';
 import { useUserStore } from '~~/stores/user';
-import { useQuery } from '@vue/apollo-composable'
+import * as apolloComposable from '@vue/apollo-composable'
 import gql from 'graphql-tag';
 
+const { useQuery } = apolloComposable
 const name = ref('A')
 // const router = useRouter()
 const user = useUserStore()
