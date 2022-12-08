@@ -12,7 +12,16 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'nuxt-windicss',
     '@kevinmarrec/nuxt-pwa',
+    '@nuxtjs/apollo',
+    '@vueuse/nuxt',
   ],
+  apollo: {
+    clients: {
+      default: {
+        httpEndpoint: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
+      }
+    },
+  },
   pwa: {
     workbox: {
       enabled: true,
@@ -28,5 +37,9 @@ export default defineNuxtConfig({
       region: process.env.NODE_ENV === 'production' ? 'ap-southeast-1' : '',
       env: process.env.NODE_ENV,
     },
+  },
+  experimental: {
+    reactivityTransform: true,
+    inlineSSRStyles: false,
   },
 })

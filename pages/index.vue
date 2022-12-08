@@ -23,14 +23,15 @@
 </template>
 
 <script lang="ts" setup>
-import { useAuthenticated, useSignInEmailPassword } from '@nhost/vue';
-import { useUserStore } from '~~/stores/user';
-import { useQuery } from '@vue/apollo-composable'
-import gql from 'graphql-tag';
+import { useAuthenticated, useSignInEmailPassword, useNhostClient } from '@nhost/vue'
+import { useUserStore } from '~~/stores/user'
+import gql from 'graphql-tag'
 
 const name = ref('A')
 // const router = useRouter()
 const user = useUserStore()
+const { getToken } = useApollo()
+const { nhost } = useNhostClient()
 
 const {
   signInEmailPassword,
@@ -40,13 +41,14 @@ const {
   isError,
   error
 } = useSignInEmailPassword()
-const { loading, result, error: gqErr } = useQuery(gql`
+const JOBS_QUERY: any = gql`
   query Jobs {
     allJobs {
       title
     }
   }
-`)
+`
+// const { loading, result, error: gqErr } = useQuerySync(JOBS_QUERY)
 const jobs = ref<{[key: string]: any}>([])
 const isAuthenticated = useAuthenticated()
 
@@ -59,19 +61,21 @@ watchEffect(() => {
     isError.value,
     error.value
   )
-  if (!loading.value && !gqErr.value) {
+  /* if (!loading.value && !gqErr.value) {
     jobs.value = result.value.jobs
   }
   console.log(
     loading.value,
     result.value,
     gqErr.value,
-  )
+  ) */
 })
 
 onMounted(async () => {
   await signInEmailPassword('seeker@example.com', 'password')
+  const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
   console.log('[isAuthenticated]: ', isAuthenticated.value)
   
+  console.log('[data]: ', data)
 })
 </script>
