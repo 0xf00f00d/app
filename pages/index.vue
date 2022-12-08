@@ -50,7 +50,7 @@ const JOBS_QUERY: any = gql`
 `
 // const { loading, result, error: gqErr } = useQuerySync(JOBS_QUERY)
 const jobs = ref<{[key: string]: any}>([])
-const token = ref<string>('')
+const token = useAccessToken()
 const isAuthenticated = useAuthenticated()
 
 watchEffect(async () => {
@@ -63,10 +63,6 @@ watchEffect(async () => {
     error.value
   )
   if (isSuccess.value) {
-    const _token = useAccessToken()
-    token.value = _token.value as string
-    console.log('[token]: ', token.value);
-    
     nhost.graphql.setAccessToken(token.value as string)
   }
   /* if (!loading.value && !gqErr.value) {
@@ -77,15 +73,16 @@ watchEffect(async () => {
     result.value,
     gqErr.value,
   ) */
+  const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
+  console.log('[data]: ', data)
+  console.log('[error]: ', gqError)
 })
 
 onMounted(async () => {
   await signInEmailPassword('seeker@example.com', 'password')
-  const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
-  await onLogin(token.value)
+  await onLogin(token.value as string)
   
   console.log('[isAuthenticated]: ', isAuthenticated.value)
   
-  console.log('[data]: ', data)
 })
 </script>
