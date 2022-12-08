@@ -5,7 +5,7 @@ export default defineNuxtConfig({
     '@mdi/font/css/materialdesignicons.min.css',
   ],
   build: {
-    transpile: ['vuetify'],
+    transpile: ['vuetify', '@vue/apollo-composable'],
   },
   ssr: true,
   modules: ['@pinia/nuxt', 'nuxt-windicss', '@kevinmarrec/nuxt-pwa'],
