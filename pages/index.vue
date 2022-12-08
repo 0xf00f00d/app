@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { useQuery } from '@vue/apollo-composable'
-import { gql } from '@apollo/client'
+import { gql } from '@apollo/client/core'
 
 useQuery(gql`
   query Books {
