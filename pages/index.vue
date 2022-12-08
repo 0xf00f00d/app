@@ -23,13 +23,57 @@
 </template>
 
 <script lang="ts" setup>
+import { useAccessToken, useAuthenticated, useNhostClient, useSignInEmailPassword } from '@nhost/vue';
+import { useUserStore } from '~~/stores/user';
 import { useQuery } from '@vue/apollo-composable'
-useQuery(gql`
-  query Books {
-    books {
-      id
+import gql from 'graphql-tag';
+
+const name = ref('A')
+// const router = useRouter()
+const user = useUserStore()
+
+const {
+  signInEmailPassword,
+  needsEmailVerification,
+  isLoading,
+  isSuccess,
+  isError,
+  error
+} = useSignInEmailPassword()
+const { loading, result, error: gqErr } = useQuery(gql`
+  query Jobs {
+    allJobs {
       title
     }
   }
 `)
+const jobs = ref<{[key: string]: any}>([])
+const { nhost } = useNhostClient()
+const isAuthenticated = useAuthenticated()
+
+watchEffect(() => {
+  user.setNewName(name.value)
+  console.log(
+    needsEmailVerification.value,
+    isLoading.value,
+    isSuccess.value,
+    isError.value,
+    error.value
+  )
+  if (!loading.value && !gqErr.value) {
+    jobs.value = result.value.jobs
+  }
+  console.log(
+    loading.value,
+    result.value,
+    gqErr.value,
+  )
+})
+
+onMounted(async () => {
+  await signInEmailPassword('seeker@example.com', 'password')
+  console.log('[nhost]: ', nhost)
+  console.log('[isAuthenticated]: ', isAuthenticated)
+  
+})
 </script>
