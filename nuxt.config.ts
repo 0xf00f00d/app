@@ -12,7 +12,6 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'nuxt-windicss',
     '@kevinmarrec/nuxt-pwa',
-    '@nuxtjs/apollo',
   ],
   pwa: {
     workbox: {
@@ -22,11 +21,12 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'vercel',
   },
-  apollo: {
-    clients: {
-      default: {
-        httpEndpoint: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:1337/v1/graphql'
-      }
+  runtimeConfig: {
+    public: {
+      backendUrl: process.env.NODE_ENV === 'production' ? 'https://edvtkshmocpxjwjlxyck.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
+      subdomain: process.env.NODE_ENV === 'production' ? 'edvtkshmocpxjwjlxyck' : 'localhost',
+      region: process.env.NODE_ENV === 'production' ? 'ap-southeast-1' : '',
+      env: process.env.NODE_ENV,
     },
   },
 })
