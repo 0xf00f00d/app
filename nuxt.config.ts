@@ -24,7 +24,8 @@ export default defineNuxtConfig({
   },
   pwa: {
     workbox: {
-      enabled: true,
+      autoRegister: process.env.NODE_ENV === 'production',
+      enabled: process.env.NODE_ENV === 'production',
     },
   },
   nitro: {
