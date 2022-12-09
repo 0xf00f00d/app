@@ -2,21 +2,100 @@
   <v-container>
     <v-row>
       <v-col cols="12" sm="2">
-        <v-sheet rounded="lg" min-height="268">
-          <!--  -->
-        </v-sheet>
+        <!-- <v-sheet rounded="lg" min-height="268">
+        
+        </v-sheet> -->
+      </v-col>
+      <v-col cols="12" sm="2">
+        <!-- <v-sheet rounded="lg" min-height="268"> -->
+          <v-form>
+            <v-text-field
+              v-model="title"
+              :counter="100"
+              label="Title"
+              required
+              clearable
+            ></v-text-field>
+            <v-combobox
+              label="Type"
+              :items="['Full-time', 'Part-time']"
+            ></v-combobox>
+            <v-combobox
+              label="Location"
+              :items="['Onsite', 'Remote', 'Hybrid']"
+            ></v-combobox>
+            <v-combobox
+              label="Experience"
+              :items="['Junior', 'Intermediate', 'Senior']"
+            ></v-combobox>
+            <v-btn
+              color="success"
+              class="mr-4"
+            >
+              Search
+            </v-btn>
+          </v-form>
+        <!-- </v-sheet> -->
       </v-col>
 
-      <v-col cols="12" sm="8">
-        <v-sheet min-height="70vh" rounded="lg">
-          <!--  -->
-        </v-sheet>
+      <v-col cols="12" sm="4">
+        <v-card
+          class="py-2 my-2"
+          v-for="i in 100"
+          :key="i"
+          prepend-avatar="https://cdn.vuetifyjs.com/images/john.jpg"
+        >
+          <template v-slot:title>
+            Software Engineer
+          </template>
+          <v-card-subtitle>YourCompany &middot; YourCompany@example.com &middot; redactedemail@domain.com</v-card-subtitle>
+          <v-card-subtitle>For those who code</v-card-subtitle>
+          <v-card-subtitle>
+            <v-chip>
+              Python
+            </v-chip>
+            <v-chip>
+              Backend
+            </v-chip>
+            <v-chip>
+              Fulltime
+            </v-chip>
+            <v-chip>
+              Remote
+            </v-chip>
+          </v-card-subtitle>
+          <v-card-action>
+            <!-- <v-spacer />
+            <v-btn
+              size="x-small"
+              color="secondary"
+            >
+              Save
+            </v-btn> -->
+          </v-card-action>
+          <template v-slot:append>
+            <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text"></v-btn>
+          </template>
+        </v-card>
       </v-col>
 
       <v-col cols="12" sm="2">
-        <v-sheet rounded="lg" min-height="268">
-          <!--  -->
-        </v-sheet>
+        <v-form>
+          <v-select
+            label="Sort By"
+            :items="['Date Posted', 'Title']"
+          ></v-select>
+          <v-select
+            label="Sort Order"
+            :items="['Ascending', 'Descending']"
+          ></v-select>
+          <v-btn
+            color="success"
+            class="mr-4"
+          >
+            Sort
+          </v-btn>
+        </v-form>
       </v-col>
     </v-row>
   </v-container>
@@ -28,6 +107,7 @@ import { useUserStore } from '~~/stores/user'
 import gql from 'graphql-tag'
 
 const name = ref('A')
+const title = ref('')
 // const router = useRouter()
 const user = useUserStore()
 const { getToken, onLogin } = useApollo()
