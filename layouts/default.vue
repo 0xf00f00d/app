@@ -1,20 +1,28 @@
 <template>
-  <v-app id="inspire" :theme="theme">
+  <v-app v-if="loading">
+    <v-sheet width="100%" height="50" class="mb-2">
+      <div class="my-2 ml-7 float-left text-h6">Loading</div>
+      <v-avatar class="mr-5 ml-2 my-2 float-right" color="surface-variant"></v-avatar>
+      <v-btn size="small" icon class="ml-2 my-2 float-right" color="surface-variant"></v-btn>
+      <v-btn variant="flat" class="ml-2 my-2 float-right" color="surface-variant"></v-btn>
+      <v-btn rounded="lg" class="my-2 float-right" color="surface-variant"></v-btn>
+    </v-sheet>
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-app>
+  <v-app v-else id="inspire" :theme="theme.name.value">
     <v-app-bar class="px-3" flat density="compact">
-      <v-app-bar-title>Title</v-app-bar-title>
+      <v-app-bar-title>HeyJobs</v-app-bar-title>
 
-      <!-- <v-tabs centered>
-        <v-tab v-for="link in links" :key="link">
-          {{ link }}
-        </v-tab>
-      </v-tabs> -->
       <v-spacer></v-spacer>
       <v-btn @click="browse" rounded="lg" class="mx-2" color="primary" variant="elevated">Browse Jobs</v-btn>
-      <v-btn @click="myJobs" class="mx-2" variant="outlined" to="my-jobs">My Jobs</v-btn>
-      <v-menu location="bottom left">
+      <v-btn @click="myJobs" class="mx-2" variant="outlined">My Jobs</v-btn>
+      <v-avatar v-if="loading" class="mx-2" color="surface-variant"></v-avatar>
+      <v-menu location="bottom left" v-else>
         <template v-slot:activator="{ props }">
           <v-btn size="x-small" v-bind="props" icon stacked>
-            <v-badge content="2" color="error">
+            <v-badge content="10" color="error">
               <v-icon>mdi-bell-outline</v-icon>
             </v-badge>
           </v-btn>
@@ -29,7 +37,7 @@
           >
             <v-list-item-title>{{ item.title }}</v-list-item-title>
             <v-list-item-subtitle>
-              <div v-html="item.subtitle"></div>
+              <div v-html="item.subtitle" class="text-truncate"></div>
             </v-list-item-subtitle>
           </v-list-item>
         </v-list>
@@ -38,10 +46,11 @@
     </v-app-bar>
 
     <v-main>
-      <!-- <v-banner
+      <v-banner
         lines="one"
         icon="mdi-wifi-strength-alert-outline"
         color="warning"
+        v-if="!online"
       >
         <template v-slot:text>
           No Internet connection
@@ -56,22 +65,21 @@
             Retry
           </v-btn>
         </template>
-      </v-banner> -->
-      <slot />
+      </v-banner>
+      <router-view />
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts" setup>
+import { useTheme } from 'vuetify'
 const router = useRouter()
-
-const theme = ref('dark')
-const links = [
-  'Browse Jobs',
-  'My Jobs',
-  'Updates',
-  'Profile',
-]
+const online = useOnline()
+const theme = useTheme()
+const loading = ref(true)
+onMounted(async () => {
+  loading.value = false
+})
 
 const items: any[] = [
   {
