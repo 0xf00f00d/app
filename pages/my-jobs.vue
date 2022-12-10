@@ -73,7 +73,13 @@
       </v-col>
 
       <v-col cols="12" sm="4" v-if="dataLoading">
-        loading..
+        <div class="d-flex justify-center mb-6">
+          <v-progress-circular
+            :size="70"
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+        </div>
       </v-col>
       <v-col cols="12" sm="4" v-else>
         <template v-for="(job, i) in jobs">
@@ -133,10 +139,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken } from '@nhost/vue'
+import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken, useUserIsAnonymous, useSignInAnonymous } from '@nhost/vue'
 import { useUserStore } from '~~/stores/user'
 import gql from 'graphql-tag'
 
+definePageMeta({
+  middleware: ['protected'],
+  key: route => route.fullPath,
+})
+useHead({
+  title: 'My Jobs | HeyJobs',
+})
 const name = ref('A')
 const title = ref('')
 const snackbar = ref(false)
@@ -171,12 +184,17 @@ const JOBS_QUERY: any = gql`
 const jobs = ref<{[key: string]: any}>([])
 const token = useAccessToken()
 const isAuthenticated = useAuthenticated()
-
-definePageMeta({
-  key: route => route.fullPath,
-})
+const anonymous = useUserIsAnonymous()
+const { signInAnonymous } = useSignInAnonymous()
 
 watchEffect(async () => {
+  console.log('[anonymous]: ', anonymous.value)
+  if (anonymous.value) {
+    navigateTo('/auth/login?redirectTo=my-jobs')
+  }
+  if (!isAuthenticated.value) {
+    await signInAnonymous()
+  }
   user.setNewName(name.value)
   console.log(
     needsEmailVerification.value,
@@ -192,29 +210,19 @@ watchEffect(async () => {
     console.log('[error]: ', gqError)
     jobs.value = data.allJobs
     dataLoading.value = false
-    // await onLogin(token.value as string)
   }
-  /* if (!loading.value && !gqErr.value) {
-    jobs.value = result.value.jobs
-  }
-  console.log(
-    loading.value,
-    result.value,
-    gqErr.value,
-  ) */
 })
 
 onMounted(async () => {
   pageLoading.value = false
-  await signInEmailPassword('seeker@example.com', 'password')
+  // await signInEmailPassword('seeker@example.com', 'password')
   
   console.log('[isAuthenticated]: ', isAuthenticated.value)
+  
 })
 
-function bookmark(e: any, j: any) {
+function bookmark(j: any) {
   snackbar.value = true
   text.value = j.title
-  e.preventDefault()
-  e.stopPropagation()
 }
 </script>

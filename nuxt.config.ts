@@ -32,6 +32,10 @@ export default defineNuxtConfig({
     preset: 'vercel',
   },
   runtimeConfig: {
+    guestAccount: {
+      email: 'guest@example.com',
+      password: 'password',
+    },
     public: {
       backendUrl: process.env.NODE_ENV === 'production' ? 'https://imdqkmbpvhpfbrhpxgwp.hasura.ap-southeast-1.nhost.run/v1/graphql' : 'http://localhost:8080/v1/graphql',
       subdomain: process.env.NODE_ENV === 'production' ? 'imdqkmbpvhpfbrhpxgwp' : 'localhost',

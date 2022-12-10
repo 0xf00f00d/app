@@ -73,7 +73,13 @@
       </v-col>
 
       <v-col cols="12" sm="4" v-if="dataLoading">
-        loading..
+        <div class="d-flex justify-center mb-6">
+          <v-progress-circular
+            :size="70"
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+        </div>
       </v-col>
       <v-col cols="12" sm="4" v-else>
         <template v-for="(job, i) in jobs">
@@ -103,7 +109,7 @@
                 </v-chip>
               </v-card-subtitle>
               <template v-slot:append>
-                <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text" @click="bookmark($event, job)"></v-btn>
+                <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text" @click.prevent="bookmark(job)"></v-btn>
               </template>
             </v-card>
           </router-link>
@@ -172,9 +178,13 @@ const jobs = ref<{[key: string]: any}>([])
 const token = useAccessToken()
 const isAuthenticated = useAuthenticated()
 
-definePageMeta({
-  key: route => route.fullPath,
+useHead({
+  title: 'Home | HeyJobs',
 })
+
+/* definePageMeta({
+  key: route => route.fullPath,
+}) */
 
 watchEffect(async () => {
   user.setNewName(name.value)
@@ -206,15 +216,14 @@ watchEffect(async () => {
 
 onMounted(async () => {
   pageLoading.value = false
-  await signInEmailPassword('seeker@example.com', 'password')
   
   console.log('[isAuthenticated]: ', isAuthenticated.value)
 })
 
-function bookmark(e: any, j: any) {
+function bookmark(j: any) {
   snackbar.value = true
   text.value = j.title
-  e.preventDefault()
-  e.stopPropagation()
+  /* e.preventDefault()
+  e.stopPropagation() */
 }
 </script>

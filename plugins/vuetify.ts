@@ -10,7 +10,7 @@ export default defineNuxtPlugin((nuxt) => {
     theme: {
       defaultTheme: 'dark',
     },
-    blueprint: md3,
+    // blueprint: md3,
   })
 
   nuxt.vueApp.use(vuetify)
