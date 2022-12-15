@@ -30,8 +30,14 @@ input Boolean_comparison_exp {
 
 type Company {
   email: String
-  id: String!
-  name: String!
+  id: uuid
+  name: String
+}
+
+input EmployerProfileInput {
+  email: String
+  employer_id: uuid!
+  name: String
 }
 
 """
@@ -51,16 +57,27 @@ input Int_comparison_exp {
 
 type Job {
   company: Company
+  company_id: uuid
+  created_at: String
   description: String
-  id: String!
+  id: uuid
+  location: String
+  title: String
+  type: String
+}
+
+input JobInput {
+  company_id: uuid!
+  description: String
+  is_active: Boolean
   location: String
   title: String!
   type: String
 }
 
 input JobUserInput {
-  job_id: String!
-  user_id: String!
+  job_id: uuid!
+  user_id: uuid!
 }
 
 input JobsQueryInput {
@@ -69,7 +86,12 @@ input JobsQueryInput {
 }
 
 input MyJobsQueryInput {
-  user_id: String!
+  user_id: uuid!
+}
+
+input PostJobInput {
+  job: JobInput!
+  user_id: uuid!
 }
 
 type Profile {
@@ -77,6 +99,12 @@ type Profile {
   email: String!
   name: String!
   user: User
+}
+
+input SeekerProfileInput {
+  email: String
+  name: String
+  user_id: uuid!
 }
 
 """
@@ -432,6 +460,11 @@ enum applications_constraint {
   """
   unique or primary key constraint on columns "job_id", "user_id"
   """
+  applications_pkey
+
+  """
+  unique or primary key constraint on columns "job_id", "user_id"
+  """
   profile_job
 }
 
@@ -523,6 +556,12 @@ input applications_order_by {
   status: order_by
   user: users_order_by
   user_id: order_by
+}
+
+"""primary key columns input for table: applications"""
+input applications_pk_columns_input {
+  job_id: uuid!
+  user_id: uuid!
 }
 
 """
@@ -2907,9 +2946,16 @@ input citext_comparison_exp {
 columns and relationships of "companies"
 """
 type companies {
-  address: String!
-  email: String!
-  employer_id: uuid
+  address: String
+
+  """An object relationship"""
+  companySize: company_sizes
+  created_at: timestamptz
+  email: String
+
+  """An object relationship"""
+  employer: users!
+  employer_id: uuid!
   id: uuid!
 
   """An array relationship"""
@@ -2947,11 +2993,11 @@ type companies {
     """filter the rows returned"""
     where: jobs_bool_exp
   ): jobs_aggregate!
+  logoUrl: String
   name: String!
-
-  """An object relationship"""
-  profile: profiles
-  telephone: String!
+  size: String
+  telephone: String
+  updated_at: timestamptz
 }
 
 """
@@ -2979,20 +3025,30 @@ input companies_bool_exp {
   _not: companies_bool_exp
   _or: [companies_bool_exp!]
   address: String_comparison_exp
+  companySize: company_sizes_bool_exp
+  created_at: timestamptz_comparison_exp
   email: String_comparison_exp
+  employer: users_bool_exp
   employer_id: uuid_comparison_exp
   id: uuid_comparison_exp
   jobs: jobs_bool_exp
   jobs_aggregate: jobs_aggregate_bool_exp
+  logoUrl: String_comparison_exp
   name: String_comparison_exp
-  profile: profiles_bool_exp
+  size: String_comparison_exp
   telephone: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
 }
 
 """
 unique or primary key constraints on table "companies"
 """
 enum companies_constraint {
+  """
+  unique or primary key constraint on columns "employer_id"
+  """
+  companies_employer_id_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -3004,33 +3060,46 @@ input type for inserting data into table "companies"
 """
 input companies_insert_input {
   address: String
+  companySize: company_sizes_obj_rel_insert_input
+  created_at: timestamptz
   email: String
+  employer: users_obj_rel_insert_input
   employer_id: uuid
   id: uuid
   jobs: jobs_arr_rel_insert_input
+  logoUrl: String
   name: String
-  profile: profiles_obj_rel_insert_input
+  size: String
   telephone: String
+  updated_at: timestamptz
 }
 
 """aggregate max on columns"""
 type companies_max_fields {
   address: String
+  created_at: timestamptz
   email: String
   employer_id: uuid
   id: uuid
+  logoUrl: String
   name: String
+  size: String
   telephone: String
+  updated_at: timestamptz
 }
 
 """aggregate min on columns"""
 type companies_min_fields {
   address: String
+  created_at: timestamptz
   email: String
   employer_id: uuid
   id: uuid
+  logoUrl: String
   name: String
+  size: String
   telephone: String
+  updated_at: timestamptz
 }
 
 """
@@ -3066,13 +3135,18 @@ input companies_on_conflict {
 """Ordering options when selecting data from "companies"."""
 input companies_order_by {
   address: order_by
+  companySize: company_sizes_order_by
+  created_at: order_by
   email: order_by
+  employer: users_order_by
   employer_id: order_by
   id: order_by
   jobs_aggregate: jobs_aggregate_order_by
+  logoUrl: order_by
   name: order_by
-  profile: profiles_order_by
+  size: order_by
   telephone: order_by
+  updated_at: order_by
 }
 
 """primary key columns input for table: companies"""
@@ -3088,6 +3162,9 @@ enum companies_select_column {
   address
 
   """column name"""
+  created_at
+
+  """column name"""
   email
 
   """column name"""
@@ -3097,10 +3174,19 @@ enum companies_select_column {
   id
 
   """column name"""
+  logoUrl
+
+  """column name"""
   name
 
   """column name"""
+  size
+
+  """column name"""
   telephone
+
+  """column name"""
+  updated_at
 }
 
 """
@@ -3108,11 +3194,15 @@ input type for updating data in table "companies"
 """
 input companies_set_input {
   address: String
+  created_at: timestamptz
   email: String
   employer_id: uuid
   id: uuid
+  logoUrl: String
   name: String
+  size: String
   telephone: String
+  updated_at: timestamptz
 }
 
 """
@@ -3129,11 +3219,15 @@ input companies_stream_cursor_input {
 """Initial value of the column from where the streaming should start"""
 input companies_stream_cursor_value_input {
   address: String
+  created_at: timestamptz
   email: String
   employer_id: uuid
   id: uuid
+  logoUrl: String
   name: String
+  size: String
   telephone: String
+  updated_at: timestamptz
 }
 
 """
@@ -3142,6 +3236,9 @@ update columns of table "companies"
 enum companies_update_column {
   """column name"""
   address
+
+  """column name"""
+  created_at
 
   """column name"""
   email
@@ -3153,10 +3250,19 @@ enum companies_update_column {
   id
 
   """column name"""
+  logoUrl
+
+  """column name"""
   name
 
   """column name"""
+  size
+
+  """column name"""
   telephone
+
+  """column name"""
+  updated_at
 }
 
 input companies_updates {
@@ -3311,6 +3417,23 @@ input company_sizes_updates {
   where: company_sizes_bool_exp!
 }
 
+"""
+fields of action: "createMyProfile"
+"""
+type createMyProfile {
+  """the time at which this action was created"""
+  created_at: timestamptz!
+
+  """errors related to the invocation"""
+  errors: json
+
+  """the unique id of an action"""
+  id: uuid!
+
+  """the output fields of this action"""
+  output: Profile
+}
+
 """ordering argument of a cursor"""
 enum cursor_ordering {
   """ascending ordering of the cursor"""
@@ -3329,6 +3452,10 @@ type employments {
   id: uuid!
   location: String
   position: String
+
+  """An object relationship"""
+  profile: profiles
+  profile_id: uuid
   start_date: String
 }
 
@@ -3340,6 +3467,17 @@ type employments_aggregate {
   nodes: [employments!]!
 }
 
+input employments_aggregate_bool_exp {
+  count: employments_aggregate_bool_exp_count
+}
+
+input employments_aggregate_bool_exp_count {
+  arguments: [employments_select_column!]
+  distinct: Boolean
+  filter: employments_bool_exp
+  predicate: Int_comparison_exp!
+}
+
 """
 aggregate fields of "employments"
 """
@@ -3347,6 +3485,25 @@ type employments_aggregate_fields {
   count(columns: [employments_select_column!], distinct: Boolean): Int!
   max: employments_max_fields
   min: employments_min_fields
+}
+
+"""
+order by aggregate values of table "employments"
+"""
+input employments_aggregate_order_by {
+  count: order_by
+  max: employments_max_order_by
+  min: employments_min_order_by
+}
+
+"""
+input type for inserting array relation for remote table "employments"
+"""
+input employments_arr_rel_insert_input {
+  data: [employments_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: employments_on_conflict
 }
 
 """
@@ -3361,6 +3518,8 @@ input employments_bool_exp {
   id: uuid_comparison_exp
   location: String_comparison_exp
   position: String_comparison_exp
+  profile: profiles_bool_exp
+  profile_id: uuid_comparison_exp
   start_date: String_comparison_exp
 }
 
@@ -3383,6 +3542,8 @@ input employments_insert_input {
   id: uuid
   location: String
   position: String
+  profile: profiles_obj_rel_insert_input
+  profile_id: uuid
   start_date: String
 }
 
@@ -3393,7 +3554,21 @@ type employments_max_fields {
   id: uuid
   location: String
   position: String
+  profile_id: uuid
   start_date: String
+}
+
+"""
+order by max() on columns of table "employments"
+"""
+input employments_max_order_by {
+  company_name: order_by
+  end_date: order_by
+  id: order_by
+  location: order_by
+  position: order_by
+  profile_id: order_by
+  start_date: order_by
 }
 
 """aggregate min on columns"""
@@ -3403,7 +3578,21 @@ type employments_min_fields {
   id: uuid
   location: String
   position: String
+  profile_id: uuid
   start_date: String
+}
+
+"""
+order by min() on columns of table "employments"
+"""
+input employments_min_order_by {
+  company_name: order_by
+  end_date: order_by
+  id: order_by
+  location: order_by
+  position: order_by
+  profile_id: order_by
+  start_date: order_by
 }
 
 """
@@ -3433,6 +3622,8 @@ input employments_order_by {
   id: order_by
   location: order_by
   position: order_by
+  profile: profiles_order_by
+  profile_id: order_by
   start_date: order_by
 }
 
@@ -3461,6 +3652,9 @@ enum employments_select_column {
   position
 
   """column name"""
+  profile_id
+
+  """column name"""
   start_date
 }
 
@@ -3473,6 +3667,7 @@ input employments_set_input {
   id: uuid
   location: String
   position: String
+  profile_id: uuid
   start_date: String
 }
 
@@ -3494,6 +3689,7 @@ input employments_stream_cursor_value_input {
   id: uuid
   location: String
   position: String
+  profile_id: uuid
   start_date: String
 }
 
@@ -3515,6 +3711,9 @@ enum employments_update_column {
 
   """column name"""
   position
+
+  """column name"""
+  profile_id
 
   """column name"""
   start_date
@@ -4771,8 +4970,11 @@ input location_types_updates {
 
 """mutation root"""
 type mutation_root {
+  addUserRole(role: String!, user_id: String!): Profile
+
   """Apply for a job"""
   applyJob(args: JobUserInput!): uuid!
+  createMyProfile(user_id: String!): uuid!
 
   """
   delete single row from the table: "auth.providers"
@@ -4924,6 +5126,11 @@ type mutation_root {
     """filter the rows which have to be deleted"""
     where: applications_bool_exp!
   ): applications_mutation_response
+
+  """
+  delete single row from the table: "applications"
+  """
+  delete_applications_by_pk(job_id: uuid!, user_id: uuid!): applications
 
   """
   delete data from the table: "companies"
@@ -5470,11 +5677,12 @@ type mutation_root {
   ): profiles
 
   """Create a Job Post"""
-  postJob(arg: JobUserInput!): uuid!
-  registerAsEmployer: Profile!
+  postJob(arg: PostJobInput!): Job
+  registerAsEmployer(arg: EmployerProfileInput!): uuid!
 
   """Register as job seeker"""
-  registerAsSeeker: Profile!
+  registerAsSeeker(arg: SeekerProfileInput!): uuid!
+  setDefaultRole(role: String!, user_id: String!): Profile
 
   """
   update single row of the table: "auth.providers"
@@ -5819,6 +6027,15 @@ type mutation_root {
     """filter the rows which have to be updated"""
     where: applications_bool_exp!
   ): applications_mutation_response
+
+  """
+  update single row of the table: "applications"
+  """
+  update_applications_by_pk(
+    """sets the columns of the filtered rows to the given values"""
+    _set: applications_set_input
+    pk_columns: applications_pk_columns_input!
+  ): applications
 
   """
   update multiples rows of table: "applications"
@@ -6200,23 +6417,6 @@ enum order_by {
 }
 
 """
-fields of action: "postJob"
-"""
-type postJob {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Job
-}
-
-"""
 columns and relationships of "profile_types"
 """
 type profile_types {
@@ -6357,11 +6557,45 @@ columns and relationships of "profiles"
 """
 type profiles {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
+
+  """An array relationship"""
+  employments(
+    """distinct select on columns"""
+    distinct_on: [employments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [employments_order_by!]
+
+    """filter the rows returned"""
+    where: employments_bool_exp
+  ): [employments!]!
+
+  """An aggregate relationship"""
+  employments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [employments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [employments_order_by!]
+
+    """filter the rows returned"""
+    where: employments_bool_exp
+  ): employments_aggregate!
   id: uuid!
   image: String
   name: String!
@@ -6369,9 +6603,6 @@ type profiles {
     """JSON select path"""
     path: String
   ): jsonb
-
-  """An object relationship"""
-  size: company_sizes
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6411,16 +6642,15 @@ input profiles_bool_exp {
   _not: profiles_bool_exp
   _or: [profiles_bool_exp!]
   address: String_comparison_exp
-  company_keywords: String_comparison_exp
-  company_size: String_comparison_exp
   created_at: timestamptz_comparison_exp
   deleted_at: timestamptz_comparison_exp
   email: String_comparison_exp
+  employments: employments_bool_exp
+  employments_aggregate: employments_aggregate_bool_exp
   id: uuid_comparison_exp
   image: String_comparison_exp
   name: String_comparison_exp
   profile_details: jsonb_comparison_exp
-  size: company_sizes_bool_exp
   telephone: String_comparison_exp
   type: String_comparison_exp
   updated_at: timestamptz_comparison_exp
@@ -6469,16 +6699,14 @@ input type for inserting data into table "profiles"
 """
 input profiles_insert_input {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
+  employments: employments_arr_rel_insert_input
   id: uuid
   image: String
   name: String
   profile_details: jsonb
-  size: company_sizes_obj_rel_insert_input
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6489,8 +6717,6 @@ input profiles_insert_input {
 """aggregate max on columns"""
 type profiles_max_fields {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
@@ -6506,8 +6732,6 @@ type profiles_max_fields {
 """aggregate min on columns"""
 type profiles_min_fields {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
@@ -6553,16 +6777,14 @@ input profiles_on_conflict {
 """Ordering options when selecting data from "profiles"."""
 input profiles_order_by {
   address: order_by
-  company_keywords: order_by
-  company_size: order_by
   created_at: order_by
   deleted_at: order_by
   email: order_by
+  employments_aggregate: employments_aggregate_order_by
   id: order_by
   image: order_by
   name: order_by
   profile_details: order_by
-  size: company_sizes_order_by
   telephone: order_by
   type: order_by
   updated_at: order_by
@@ -6586,12 +6808,6 @@ select columns of table "profiles"
 enum profiles_select_column {
   """column name"""
   address
-
-  """column name"""
-  company_keywords
-
-  """column name"""
-  company_size
 
   """column name"""
   created_at
@@ -6632,8 +6848,6 @@ input type for updating data in table "profiles"
 """
 input profiles_set_input {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
@@ -6661,8 +6875,6 @@ input profiles_stream_cursor_input {
 """Initial value of the column from where the streaming should start"""
 input profiles_stream_cursor_value_input {
   address: String
-  company_keywords: String
-  company_size: String
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
@@ -6682,12 +6894,6 @@ update columns of table "profiles"
 enum profiles_update_column {
   """column name"""
   address
-
-  """column name"""
-  company_keywords
-
-  """column name"""
-  company_size
 
   """column name"""
   created_at
@@ -6834,6 +7040,9 @@ type query_root {
     """filter the rows returned"""
     where: applications_bool_exp
   ): applications_aggregate!
+
+  """fetch data from the table: "applications" using primary key columns"""
+  applications_by_pk(job_id: uuid!, user_id: uuid!): applications
 
   """Apply for a job"""
   applyJob(
@@ -7278,10 +7487,12 @@ type query_root {
 
   """fetch data from the table: "company_sizes" using primary key columns"""
   company_sizes_by_pk(size: String!): company_sizes
+  createMyProfile(
+    """the unique id of an action"""
+    id: uuid!
+  ): createMyProfile
 
-  """
-  fetch data from the table: "employments"
-  """
+  """An array relationship"""
   employments(
     """distinct select on columns"""
     distinct_on: [employments_select_column!]
@@ -7299,9 +7510,7 @@ type query_root {
     where: employments_bool_exp
   ): [employments!]!
 
-  """
-  fetch aggregated fields from the table: "employments"
-  """
+  """An aggregate relationship"""
   employments_aggregate(
     """distinct select on columns"""
     distinct_on: [employments_select_column!]
@@ -7493,18 +7702,13 @@ type query_root {
 
   """List user's job applications"""
   myApplications(filter: MyJobsQueryInput): [Job]
+  myCompany(employer_id: uuid!): Company
 
   """List user's job posts"""
-  myJobs(filter: MyJobsQueryInput): [Job]
+  myJobs(company_id: uuid!): [Job]
 
   """Get user's profile"""
   myProfile(user_id: Int!): Profile
-
-  """Create a Job Post"""
-  postJob(
-    """the unique id of an action"""
-    id: uuid!
-  ): postJob
 
   """
   fetch data from the table: "profile_types"
@@ -7591,6 +7795,16 @@ type query_root {
 
   """fetch data from the table: "profiles" using primary key columns"""
   profiles_by_pk(id: uuid!): profiles
+  registerAsEmployer(
+    """the unique id of an action"""
+    id: uuid!
+  ): registerAsEmployer
+
+  """Register as job seeker"""
+  registerAsSeeker(
+    """the unique id of an action"""
+    id: uuid!
+  ): registerAsSeeker
 
   """Update user's profile"""
   updateMyProfile(
@@ -7646,6 +7860,40 @@ type query_root {
     """filter the rows returned"""
     where: users_bool_exp
   ): users_aggregate!
+}
+
+"""
+fields of action: "registerAsEmployer"
+"""
+type registerAsEmployer {
+  """the time at which this action was created"""
+  created_at: timestamptz!
+
+  """errors related to the invocation"""
+  errors: json
+
+  """the unique id of an action"""
+  id: uuid!
+
+  """the output fields of this action"""
+  output: Profile!
+}
+
+"""
+fields of action: "registerAsSeeker"
+"""
+type registerAsSeeker {
+  """the time at which this action was created"""
+  created_at: timestamptz!
+
+  """errors related to the invocation"""
+  errors: json
+
+  """the unique id of an action"""
+  id: uuid!
+
+  """the output fields of this action"""
+  output: Profile!
 }
 
 type subscription_root {
@@ -7743,6 +7991,9 @@ type subscription_root {
     """filter the rows returned"""
     where: applications_bool_exp
   ): applications_aggregate!
+
+  """fetch data from the table: "applications" using primary key columns"""
+  applications_by_pk(job_id: uuid!, user_id: uuid!): applications
 
   """
   fetch data from the table in a streaming manner: "applications"
@@ -8341,10 +8592,12 @@ type subscription_root {
     """filter the rows returned"""
     where: company_sizes_bool_exp
   ): [company_sizes!]!
+  createMyProfile(
+    """the unique id of an action"""
+    id: uuid!
+  ): createMyProfile
 
-  """
-  fetch data from the table: "employments"
-  """
+  """An array relationship"""
   employments(
     """distinct select on columns"""
     distinct_on: [employments_select_column!]
@@ -8362,9 +8615,7 @@ type subscription_root {
     where: employments_bool_exp
   ): [employments!]!
 
-  """
-  fetch aggregated fields from the table: "employments"
-  """
+  """An aggregate relationship"""
   employments_aggregate(
     """distinct select on columns"""
     distinct_on: [employments_select_column!]
@@ -8621,12 +8872,6 @@ type subscription_root {
     where: location_types_bool_exp
   ): [location_types!]!
 
-  """Create a Job Post"""
-  postJob(
-    """the unique id of an action"""
-    id: uuid!
-  ): postJob
-
   """
   fetch data from the table: "profile_types"
   """
@@ -8740,6 +8985,16 @@ type subscription_root {
     """filter the rows returned"""
     where: profiles_bool_exp
   ): [profiles!]!
+  registerAsEmployer(
+    """the unique id of an action"""
+    id: uuid!
+  ): registerAsEmployer
+
+  """Register as job seeker"""
+  registerAsSeeker(
+    """the unique id of an action"""
+    id: uuid!
+  ): registerAsSeeker
 
   """Update user's profile"""
   updateMyProfile(

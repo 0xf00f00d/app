@@ -36,8 +36,14 @@ export type Boolean_Comparison_Exp = {
 export type Company = {
   __typename?: 'Company';
   email?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
-  name: Scalars['String'];
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+};
+
+export type EmployerProfileInput = {
+  email?: InputMaybe<Scalars['String']>;
+  employer_id: Scalars['uuid'];
+  name?: InputMaybe<Scalars['String']>;
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
@@ -56,16 +62,27 @@ export type Int_Comparison_Exp = {
 export type Job = {
   __typename?: 'Job';
   company?: Maybe<Company>;
+  company_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['String']>;
   description?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id?: Maybe<Scalars['uuid']>;
   location?: Maybe<Scalars['String']>;
-  title: Scalars['String'];
+  title?: Maybe<Scalars['String']>;
   type?: Maybe<Scalars['String']>;
 };
 
+export type JobInput = {
+  company_id: Scalars['uuid'];
+  description?: InputMaybe<Scalars['String']>;
+  is_active?: InputMaybe<Scalars['Boolean']>;
+  location?: InputMaybe<Scalars['String']>;
+  title: Scalars['String'];
+  type?: InputMaybe<Scalars['String']>;
+};
+
 export type JobUserInput = {
-  job_id: Scalars['String'];
-  user_id: Scalars['String'];
+  job_id: Scalars['uuid'];
+  user_id: Scalars['uuid'];
 };
 
 export type JobsQueryInput = {
@@ -74,7 +91,12 @@ export type JobsQueryInput = {
 };
 
 export type MyJobsQueryInput = {
-  user_id: Scalars['String'];
+  user_id: Scalars['uuid'];
+};
+
+export type PostJobInput = {
+  job: JobInput;
+  user_id: Scalars['uuid'];
 };
 
 export type Profile = {
@@ -83,6 +105,12 @@ export type Profile = {
   email: Scalars['String'];
   name: Scalars['String'];
   user?: Maybe<User>;
+};
+
+export type SeekerProfileInput = {
+  email?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  user_id: Scalars['uuid'];
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -380,6 +408,8 @@ export type Applications_Bool_Exp = {
 /** unique or primary key constraints on table "applications" */
 export enum Applications_Constraint {
   /** unique or primary key constraint on columns "job_id", "user_id" */
+  ApplicationsPkey = 'applications_pkey',
+  /** unique or primary key constraint on columns "job_id", "user_id" */
   ProfileJob = 'profile_job'
 }
 
@@ -463,6 +493,12 @@ export type Applications_Order_By = {
   status?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: applications */
+export type Applications_Pk_Columns_Input = {
+  job_id: Scalars['uuid'];
+  user_id: Scalars['uuid'];
 };
 
 /** select columns of table "applications" */
@@ -2484,18 +2520,24 @@ export type Citext_Comparison_Exp = {
 /** columns and relationships of "companies" */
 export type Companies = {
   __typename?: 'companies';
-  address: Scalars['String'];
-  email: Scalars['String'];
-  employer_id?: Maybe<Scalars['uuid']>;
+  address?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  companySize?: Maybe<Company_Sizes>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  email?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  employer: Users;
+  employer_id: Scalars['uuid'];
   id: Scalars['uuid'];
   /** An array relationship */
   jobs: Array<Jobs>;
   /** An aggregate relationship */
   jobs_aggregate: Jobs_Aggregate;
+  logoUrl?: Maybe<Scalars['String']>;
   name: Scalars['String'];
-  /** An object relationship */
-  profile?: Maybe<Profiles>;
-  telephone: Scalars['String'];
+  size?: Maybe<Scalars['String']>;
+  telephone?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
 };
 
 
@@ -2546,18 +2588,25 @@ export type Companies_Bool_Exp = {
   _not?: InputMaybe<Companies_Bool_Exp>;
   _or?: InputMaybe<Array<Companies_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  companySize?: InputMaybe<Company_Sizes_Bool_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<String_Comparison_Exp>;
+  employer?: InputMaybe<Users_Bool_Exp>;
   employer_id?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   jobs?: InputMaybe<Jobs_Bool_Exp>;
   jobs_aggregate?: InputMaybe<Jobs_Aggregate_Bool_Exp>;
+  logoUrl?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
-  profile?: InputMaybe<Profiles_Bool_Exp>;
+  size?: InputMaybe<String_Comparison_Exp>;
   telephone?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "companies" */
 export enum Companies_Constraint {
+  /** unique or primary key constraint on columns "employer_id" */
+  CompaniesEmployerIdKey = 'companies_employer_id_key',
   /** unique or primary key constraint on columns "id" */
   CompaniesPkey = 'companies_pkey'
 }
@@ -2565,35 +2614,48 @@ export enum Companies_Constraint {
 /** input type for inserting data into table "companies" */
 export type Companies_Insert_Input = {
   address?: InputMaybe<Scalars['String']>;
+  companySize?: InputMaybe<Company_Sizes_Obj_Rel_Insert_Input>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
+  employer?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   employer_id?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   jobs?: InputMaybe<Jobs_Arr_Rel_Insert_Input>;
+  logoUrl?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
-  profile?: InputMaybe<Profiles_Obj_Rel_Insert_Input>;
+  size?: InputMaybe<Scalars['String']>;
   telephone?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate max on columns */
 export type Companies_Max_Fields = {
   __typename?: 'companies_max_fields';
   address?: Maybe<Scalars['String']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['String']>;
   employer_id?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  logoUrl?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
+  size?: Maybe<Scalars['String']>;
   telephone?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
 };
 
 /** aggregate min on columns */
 export type Companies_Min_Fields = {
   __typename?: 'companies_min_fields';
   address?: Maybe<Scalars['String']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['String']>;
   employer_id?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  logoUrl?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
+  size?: Maybe<Scalars['String']>;
   telephone?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
 };
 
 /** response of any mutation on the table "companies" */
@@ -2622,13 +2684,18 @@ export type Companies_On_Conflict = {
 /** Ordering options when selecting data from "companies". */
 export type Companies_Order_By = {
   address?: InputMaybe<Order_By>;
+  companySize?: InputMaybe<Company_Sizes_Order_By>;
+  created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
+  employer?: InputMaybe<Users_Order_By>;
   employer_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   jobs_aggregate?: InputMaybe<Jobs_Aggregate_Order_By>;
+  logoUrl?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  profile?: InputMaybe<Profiles_Order_By>;
+  size?: InputMaybe<Order_By>;
   telephone?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: companies */
@@ -2641,25 +2708,37 @@ export enum Companies_Select_Column {
   /** column name */
   Address = 'address',
   /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
   Email = 'email',
   /** column name */
   EmployerId = 'employer_id',
   /** column name */
   Id = 'id',
   /** column name */
+  LogoUrl = 'logoUrl',
+  /** column name */
   Name = 'name',
   /** column name */
-  Telephone = 'telephone'
+  Size = 'size',
+  /** column name */
+  Telephone = 'telephone',
+  /** column name */
+  UpdatedAt = 'updated_at'
 }
 
 /** input type for updating data in table "companies" */
 export type Companies_Set_Input = {
   address?: InputMaybe<Scalars['String']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
   employer_id?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
+  logoUrl?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
+  size?: InputMaybe<Scalars['String']>;
   telephone?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** Streaming cursor of the table "companies" */
@@ -2673,11 +2752,15 @@ export type Companies_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Companies_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
   employer_id?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
+  logoUrl?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
+  size?: InputMaybe<Scalars['String']>;
   telephone?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "companies" */
@@ -2685,15 +2768,23 @@ export enum Companies_Update_Column {
   /** column name */
   Address = 'address',
   /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
   Email = 'email',
   /** column name */
   EmployerId = 'employer_id',
   /** column name */
   Id = 'id',
   /** column name */
+  LogoUrl = 'logoUrl',
+  /** column name */
   Name = 'name',
   /** column name */
-  Telephone = 'telephone'
+  Size = 'size',
+  /** column name */
+  Telephone = 'telephone',
+  /** column name */
+  UpdatedAt = 'updated_at'
 }
 
 export type Companies_Updates = {
@@ -2830,6 +2921,19 @@ export type Company_Sizes_Updates = {
   where: Company_Sizes_Bool_Exp;
 };
 
+/** fields of action: "createMyProfile" */
+export type CreateMyProfile = {
+  __typename?: 'createMyProfile';
+  /** the time at which this action was created */
+  created_at: Scalars['timestamptz'];
+  /** errors related to the invocation */
+  errors?: Maybe<Scalars['json']>;
+  /** the unique id of an action */
+  id: Scalars['uuid'];
+  /** the output fields of this action */
+  output?: Maybe<Profile>;
+};
+
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
@@ -2846,6 +2950,9 @@ export type Employments = {
   id: Scalars['uuid'];
   location?: Maybe<Scalars['String']>;
   position?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  profile?: Maybe<Profiles>;
+  profile_id?: Maybe<Scalars['uuid']>;
   start_date?: Maybe<Scalars['String']>;
 };
 
@@ -2854,6 +2961,17 @@ export type Employments_Aggregate = {
   __typename?: 'employments_aggregate';
   aggregate?: Maybe<Employments_Aggregate_Fields>;
   nodes: Array<Employments>;
+};
+
+export type Employments_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Employments_Aggregate_Bool_Exp_Count>;
+};
+
+export type Employments_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Employments_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Employments_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "employments" */
@@ -2871,6 +2989,20 @@ export type Employments_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
+/** order by aggregate values of table "employments" */
+export type Employments_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Employments_Max_Order_By>;
+  min?: InputMaybe<Employments_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "employments" */
+export type Employments_Arr_Rel_Insert_Input = {
+  data: Array<Employments_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Employments_On_Conflict>;
+};
+
 /** Boolean expression to filter rows from the table "employments". All fields are combined with a logical 'AND'. */
 export type Employments_Bool_Exp = {
   _and?: InputMaybe<Array<Employments_Bool_Exp>>;
@@ -2881,6 +3013,8 @@ export type Employments_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   location?: InputMaybe<String_Comparison_Exp>;
   position?: InputMaybe<String_Comparison_Exp>;
+  profile?: InputMaybe<Profiles_Bool_Exp>;
+  profile_id?: InputMaybe<Uuid_Comparison_Exp>;
   start_date?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -2897,6 +3031,8 @@ export type Employments_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   location?: InputMaybe<Scalars['String']>;
   position?: InputMaybe<Scalars['String']>;
+  profile?: InputMaybe<Profiles_Obj_Rel_Insert_Input>;
+  profile_id?: InputMaybe<Scalars['uuid']>;
   start_date?: InputMaybe<Scalars['String']>;
 };
 
@@ -2908,7 +3044,19 @@ export type Employments_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   location?: Maybe<Scalars['String']>;
   position?: Maybe<Scalars['String']>;
+  profile_id?: Maybe<Scalars['uuid']>;
   start_date?: Maybe<Scalars['String']>;
+};
+
+/** order by max() on columns of table "employments" */
+export type Employments_Max_Order_By = {
+  company_name?: InputMaybe<Order_By>;
+  end_date?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  location?: InputMaybe<Order_By>;
+  position?: InputMaybe<Order_By>;
+  profile_id?: InputMaybe<Order_By>;
+  start_date?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -2919,7 +3067,19 @@ export type Employments_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   location?: Maybe<Scalars['String']>;
   position?: Maybe<Scalars['String']>;
+  profile_id?: Maybe<Scalars['uuid']>;
   start_date?: Maybe<Scalars['String']>;
+};
+
+/** order by min() on columns of table "employments" */
+export type Employments_Min_Order_By = {
+  company_name?: InputMaybe<Order_By>;
+  end_date?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  location?: InputMaybe<Order_By>;
+  position?: InputMaybe<Order_By>;
+  profile_id?: InputMaybe<Order_By>;
+  start_date?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "employments" */
@@ -2945,6 +3105,8 @@ export type Employments_Order_By = {
   id?: InputMaybe<Order_By>;
   location?: InputMaybe<Order_By>;
   position?: InputMaybe<Order_By>;
+  profile?: InputMaybe<Profiles_Order_By>;
+  profile_id?: InputMaybe<Order_By>;
   start_date?: InputMaybe<Order_By>;
 };
 
@@ -2966,6 +3128,8 @@ export enum Employments_Select_Column {
   /** column name */
   Position = 'position',
   /** column name */
+  ProfileId = 'profile_id',
+  /** column name */
   StartDate = 'start_date'
 }
 
@@ -2976,6 +3140,7 @@ export type Employments_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   location?: InputMaybe<Scalars['String']>;
   position?: InputMaybe<Scalars['String']>;
+  profile_id?: InputMaybe<Scalars['uuid']>;
   start_date?: InputMaybe<Scalars['String']>;
 };
 
@@ -2994,6 +3159,7 @@ export type Employments_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   location?: InputMaybe<Scalars['String']>;
   position?: InputMaybe<Scalars['String']>;
+  profile_id?: InputMaybe<Scalars['uuid']>;
   start_date?: InputMaybe<Scalars['String']>;
 };
 
@@ -3009,6 +3175,8 @@ export enum Employments_Update_Column {
   Location = 'location',
   /** column name */
   Position = 'position',
+  /** column name */
+  ProfileId = 'profile_id',
   /** column name */
   StartDate = 'start_date'
 }
@@ -4096,8 +4264,10 @@ export type Location_Types_Updates = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  addUserRole?: Maybe<Profile>;
   /** Apply for a job */
   applyJob: Scalars['uuid'];
+  createMyProfile: Scalars['uuid'];
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -4144,6 +4314,8 @@ export type Mutation_Root = {
   delete_application_status_by_pk?: Maybe<Application_Status>;
   /** delete data from the table: "applications" */
   delete_applications?: Maybe<Applications_Mutation_Response>;
+  /** delete single row from the table: "applications" */
+  delete_applications_by_pk?: Maybe<Applications>;
   /** delete data from the table: "companies" */
   delete_companies?: Maybe<Companies_Mutation_Response>;
   /** delete single row from the table: "companies" */
@@ -4257,10 +4429,11 @@ export type Mutation_Root = {
   /** insert a single row into the table: "profiles" */
   insert_profiles_one?: Maybe<Profiles>;
   /** Create a Job Post */
-  postJob: Scalars['uuid'];
-  registerAsEmployer: Profile;
+  postJob?: Maybe<Job>;
+  registerAsEmployer: Scalars['uuid'];
   /** Register as job seeker */
-  registerAsSeeker: Profile;
+  registerAsSeeker: Scalars['uuid'];
+  setDefaultRole?: Maybe<Profile>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4311,6 +4484,8 @@ export type Mutation_Root = {
   update_application_status_many?: Maybe<Array<Maybe<Application_Status_Mutation_Response>>>;
   /** update data of the table: "applications" */
   update_applications?: Maybe<Applications_Mutation_Response>;
+  /** update single row of the table: "applications" */
+  update_applications_by_pk?: Maybe<Applications>;
   /** update multiples rows of table: "applications" */
   update_applications_many?: Maybe<Array<Maybe<Applications_Mutation_Response>>>;
   /** update multiples rows of table: "auth.provider_requests" */
@@ -4387,8 +4562,21 @@ export type Mutation_Root = {
 
 
 /** mutation root */
+export type Mutation_RootAddUserRoleArgs = {
+  role: Scalars['String'];
+  user_id: Scalars['String'];
+};
+
+
+/** mutation root */
 export type Mutation_RootApplyJobArgs = {
   args: JobUserInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootCreateMyProfileArgs = {
+  user_id: Scalars['String'];
 };
 
 
@@ -4527,6 +4715,13 @@ export type Mutation_RootDelete_Application_Status_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootDelete_ApplicationsArgs = {
   where: Applications_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Applications_By_PkArgs = {
+  job_id: Scalars['uuid'];
+  user_id: Scalars['uuid'];
 };
 
 
@@ -4908,7 +5103,26 @@ export type Mutation_RootInsert_Profiles_OneArgs = {
 
 /** mutation root */
 export type Mutation_RootPostJobArgs = {
-  arg: JobUserInput;
+  arg: PostJobInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootRegisterAsEmployerArgs = {
+  arg: EmployerProfileInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootRegisterAsSeekerArgs = {
+  arg: SeekerProfileInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootSetDefaultRoleArgs = {
+  role: Scalars['String'];
+  user_id: Scalars['String'];
 };
 
 
@@ -5108,6 +5322,13 @@ export type Mutation_RootUpdate_Application_Status_ManyArgs = {
 export type Mutation_RootUpdate_ApplicationsArgs = {
   _set?: InputMaybe<Applications_Set_Input>;
   where: Applications_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Applications_By_PkArgs = {
+  _set?: InputMaybe<Applications_Set_Input>;
+  pk_columns: Applications_Pk_Columns_Input;
 };
 
 
@@ -5368,19 +5589,6 @@ export enum Order_By {
   DescNullsLast = 'desc_nulls_last'
 }
 
-/** fields of action: "postJob" */
-export type PostJob = {
-  __typename?: 'postJob';
-  /** the time at which this action was created */
-  created_at: Scalars['timestamptz'];
-  /** errors related to the invocation */
-  errors?: Maybe<Scalars['json']>;
-  /** the unique id of an action */
-  id: Scalars['uuid'];
-  /** the output fields of this action */
-  output?: Maybe<Job>;
-};
-
 /** columns and relationships of "profile_types" */
 export type Profile_Types = {
   __typename?: 'profile_types';
@@ -5506,23 +5714,43 @@ export type Profile_Types_Updates = {
 export type Profiles = {
   __typename?: 'profiles';
   address?: Maybe<Scalars['String']>;
-  company_keywords?: Maybe<Scalars['String']>;
-  company_size?: Maybe<Scalars['String']>;
   created_at?: Maybe<Scalars['timestamptz']>;
   deleted_at?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['String']>;
+  /** An array relationship */
+  employments: Array<Employments>;
+  /** An aggregate relationship */
+  employments_aggregate: Employments_Aggregate;
   id: Scalars['uuid'];
   image?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   profile_details?: Maybe<Scalars['jsonb']>;
-  /** An object relationship */
-  size?: Maybe<Company_Sizes>;
   telephone?: Maybe<Scalars['String']>;
   type?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
   /** An object relationship */
   user?: Maybe<Users>;
   user_id: Scalars['uuid'];
+};
+
+
+/** columns and relationships of "profiles" */
+export type ProfilesEmploymentsArgs = {
+  distinct_on?: InputMaybe<Array<Employments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Employments_Order_By>>;
+  where?: InputMaybe<Employments_Bool_Exp>;
+};
+
+
+/** columns and relationships of "profiles" */
+export type ProfilesEmployments_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Employments_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Employments_Order_By>>;
+  where?: InputMaybe<Employments_Bool_Exp>;
 };
 
 
@@ -5564,16 +5792,15 @@ export type Profiles_Bool_Exp = {
   _not?: InputMaybe<Profiles_Bool_Exp>;
   _or?: InputMaybe<Array<Profiles_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
-  company_keywords?: InputMaybe<String_Comparison_Exp>;
-  company_size?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<String_Comparison_Exp>;
+  employments?: InputMaybe<Employments_Bool_Exp>;
+  employments_aggregate?: InputMaybe<Employments_Aggregate_Bool_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   image?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   profile_details?: InputMaybe<Jsonb_Comparison_Exp>;
-  size?: InputMaybe<Company_Sizes_Bool_Exp>;
   telephone?: InputMaybe<String_Comparison_Exp>;
   type?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -5607,16 +5834,14 @@ export type Profiles_Delete_Key_Input = {
 /** input type for inserting data into table "profiles" */
 export type Profiles_Insert_Input = {
   address?: InputMaybe<Scalars['String']>;
-  company_keywords?: InputMaybe<Scalars['String']>;
-  company_size?: InputMaybe<Scalars['String']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   deleted_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
+  employments?: InputMaybe<Employments_Arr_Rel_Insert_Input>;
   id?: InputMaybe<Scalars['uuid']>;
   image?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   profile_details?: InputMaybe<Scalars['jsonb']>;
-  size?: InputMaybe<Company_Sizes_Obj_Rel_Insert_Input>;
   telephone?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
@@ -5628,8 +5853,6 @@ export type Profiles_Insert_Input = {
 export type Profiles_Max_Fields = {
   __typename?: 'profiles_max_fields';
   address?: Maybe<Scalars['String']>;
-  company_keywords?: Maybe<Scalars['String']>;
-  company_size?: Maybe<Scalars['String']>;
   created_at?: Maybe<Scalars['timestamptz']>;
   deleted_at?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['String']>;
@@ -5646,8 +5869,6 @@ export type Profiles_Max_Fields = {
 export type Profiles_Min_Fields = {
   __typename?: 'profiles_min_fields';
   address?: Maybe<Scalars['String']>;
-  company_keywords?: Maybe<Scalars['String']>;
-  company_size?: Maybe<Scalars['String']>;
   created_at?: Maybe<Scalars['timestamptz']>;
   deleted_at?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['String']>;
@@ -5686,16 +5907,14 @@ export type Profiles_On_Conflict = {
 /** Ordering options when selecting data from "profiles". */
 export type Profiles_Order_By = {
   address?: InputMaybe<Order_By>;
-  company_keywords?: InputMaybe<Order_By>;
-  company_size?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   deleted_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
+  employments_aggregate?: InputMaybe<Employments_Aggregate_Order_By>;
   id?: InputMaybe<Order_By>;
   image?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   profile_details?: InputMaybe<Order_By>;
-  size?: InputMaybe<Company_Sizes_Order_By>;
   telephone?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -5717,10 +5936,6 @@ export type Profiles_Prepend_Input = {
 export enum Profiles_Select_Column {
   /** column name */
   Address = 'address',
-  /** column name */
-  CompanyKeywords = 'company_keywords',
-  /** column name */
-  CompanySize = 'company_size',
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
@@ -5748,8 +5963,6 @@ export enum Profiles_Select_Column {
 /** input type for updating data in table "profiles" */
 export type Profiles_Set_Input = {
   address?: InputMaybe<Scalars['String']>;
-  company_keywords?: InputMaybe<Scalars['String']>;
-  company_size?: InputMaybe<Scalars['String']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   deleted_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
@@ -5774,8 +5987,6 @@ export type Profiles_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Profiles_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']>;
-  company_keywords?: InputMaybe<Scalars['String']>;
-  company_size?: InputMaybe<Scalars['String']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   deleted_at?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['String']>;
@@ -5793,10 +6004,6 @@ export type Profiles_Stream_Cursor_Value_Input = {
 export enum Profiles_Update_Column {
   /** column name */
   Address = 'address',
-  /** column name */
-  CompanyKeywords = 'company_keywords',
-  /** column name */
-  CompanySize = 'company_size',
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
@@ -5851,6 +6058,8 @@ export type Query_Root = {
   applications: Array<Applications>;
   /** An aggregate relationship */
   applications_aggregate: Applications_Aggregate;
+  /** fetch data from the table: "applications" using primary key columns */
+  applications_by_pk?: Maybe<Applications>;
   /** Apply for a job */
   applyJob?: Maybe<ApplyJob>;
   /** fetch data from the table: "auth.providers" using primary key columns */
@@ -5913,9 +6122,10 @@ export type Query_Root = {
   company_sizes_aggregate: Company_Sizes_Aggregate;
   /** fetch data from the table: "company_sizes" using primary key columns */
   company_sizes_by_pk?: Maybe<Company_Sizes>;
-  /** fetch data from the table: "employments" */
+  createMyProfile?: Maybe<CreateMyProfile>;
+  /** An array relationship */
   employments: Array<Employments>;
-  /** fetch aggregated fields from the table: "employments" */
+  /** An aggregate relationship */
   employments_aggregate: Employments_Aggregate;
   /** fetch data from the table: "employments" using primary key columns */
   employments_by_pk?: Maybe<Employments>;
@@ -5947,12 +6157,11 @@ export type Query_Root = {
   location_types_by_pk?: Maybe<Location_Types>;
   /** List user's job applications */
   myApplications?: Maybe<Array<Maybe<Job>>>;
+  myCompany?: Maybe<Company>;
   /** List user's job posts */
   myJobs?: Maybe<Array<Maybe<Job>>>;
   /** Get user's profile */
   myProfile?: Maybe<Profile>;
-  /** Create a Job Post */
-  postJob?: Maybe<PostJob>;
   /** fetch data from the table: "profile_types" */
   profile_types: Array<Profile_Types>;
   /** fetch aggregated fields from the table: "profile_types" */
@@ -5965,6 +6174,9 @@ export type Query_Root = {
   profiles_aggregate: Profiles_Aggregate;
   /** fetch data from the table: "profiles" using primary key columns */
   profiles_by_pk?: Maybe<Profiles>;
+  registerAsEmployer?: Maybe<RegisterAsEmployer>;
+  /** Register as job seeker */
+  registerAsSeeker?: Maybe<RegisterAsSeeker>;
   /** Update user's profile */
   updateMyProfile?: Maybe<UpdateMyProfile>;
   /** Upload resume */
@@ -6021,6 +6233,12 @@ export type Query_RootApplications_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Applications_Order_By>>;
   where?: InputMaybe<Applications_Bool_Exp>;
+};
+
+
+export type Query_RootApplications_By_PkArgs = {
+  job_id: Scalars['uuid'];
+  user_id: Scalars['uuid'];
 };
 
 
@@ -6259,6 +6477,11 @@ export type Query_RootCompany_Sizes_By_PkArgs = {
 };
 
 
+export type Query_RootCreateMyProfileArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Query_RootEmploymentsArgs = {
   distinct_on?: InputMaybe<Array<Employments_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6384,18 +6607,18 @@ export type Query_RootMyApplicationsArgs = {
 };
 
 
+export type Query_RootMyCompanyArgs = {
+  employer_id: Scalars['uuid'];
+};
+
+
 export type Query_RootMyJobsArgs = {
-  filter?: InputMaybe<MyJobsQueryInput>;
+  company_id: Scalars['uuid'];
 };
 
 
 export type Query_RootMyProfileArgs = {
   user_id: Scalars['Int'];
-};
-
-
-export type Query_RootPostJobArgs = {
-  id: Scalars['uuid'];
 };
 
 
@@ -6445,6 +6668,16 @@ export type Query_RootProfiles_By_PkArgs = {
 };
 
 
+export type Query_RootRegisterAsEmployerArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootRegisterAsSeekerArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Query_RootUpdateMyProfileArgs = {
   id: Scalars['uuid'];
 };
@@ -6477,6 +6710,32 @@ export type Query_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+/** fields of action: "registerAsEmployer" */
+export type RegisterAsEmployer = {
+  __typename?: 'registerAsEmployer';
+  /** the time at which this action was created */
+  created_at: Scalars['timestamptz'];
+  /** errors related to the invocation */
+  errors?: Maybe<Scalars['json']>;
+  /** the unique id of an action */
+  id: Scalars['uuid'];
+  /** the output fields of this action */
+  output: Profile;
+};
+
+/** fields of action: "registerAsSeeker" */
+export type RegisterAsSeeker = {
+  __typename?: 'registerAsSeeker';
+  /** the time at which this action was created */
+  created_at: Scalars['timestamptz'];
+  /** errors related to the invocation */
+  errors?: Maybe<Scalars['json']>;
+  /** the unique id of an action */
+  id: Scalars['uuid'];
+  /** the output fields of this action */
+  output: Profile;
+};
+
 export type Subscription_Root = {
   __typename?: 'subscription_root';
   /** fetch data from the table: "application_status" */
@@ -6491,6 +6750,8 @@ export type Subscription_Root = {
   applications: Array<Applications>;
   /** An aggregate relationship */
   applications_aggregate: Applications_Aggregate;
+  /** fetch data from the table: "applications" using primary key columns */
+  applications_by_pk?: Maybe<Applications>;
   /** fetch data from the table in a streaming manner: "applications" */
   applications_stream: Array<Applications>;
   /** Apply for a job */
@@ -6575,9 +6836,10 @@ export type Subscription_Root = {
   company_sizes_by_pk?: Maybe<Company_Sizes>;
   /** fetch data from the table in a streaming manner: "company_sizes" */
   company_sizes_stream: Array<Company_Sizes>;
-  /** fetch data from the table: "employments" */
+  createMyProfile?: Maybe<CreateMyProfile>;
+  /** An array relationship */
   employments: Array<Employments>;
-  /** fetch aggregated fields from the table: "employments" */
+  /** An aggregate relationship */
   employments_aggregate: Employments_Aggregate;
   /** fetch data from the table: "employments" using primary key columns */
   employments_by_pk?: Maybe<Employments>;
@@ -6615,8 +6877,6 @@ export type Subscription_Root = {
   location_types_by_pk?: Maybe<Location_Types>;
   /** fetch data from the table in a streaming manner: "location_types" */
   location_types_stream: Array<Location_Types>;
-  /** Create a Job Post */
-  postJob?: Maybe<PostJob>;
   /** fetch data from the table: "profile_types" */
   profile_types: Array<Profile_Types>;
   /** fetch aggregated fields from the table: "profile_types" */
@@ -6633,6 +6893,9 @@ export type Subscription_Root = {
   profiles_by_pk?: Maybe<Profiles>;
   /** fetch data from the table in a streaming manner: "profiles" */
   profiles_stream: Array<Profiles>;
+  registerAsEmployer?: Maybe<RegisterAsEmployer>;
+  /** Register as job seeker */
+  registerAsSeeker?: Maybe<RegisterAsSeeker>;
   /** Update user's profile */
   updateMyProfile?: Maybe<UpdateMyProfile>;
   /** Upload resume */
@@ -6693,6 +6956,12 @@ export type Subscription_RootApplications_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Applications_Order_By>>;
   where?: InputMaybe<Applications_Bool_Exp>;
+};
+
+
+export type Subscription_RootApplications_By_PkArgs = {
+  job_id: Scalars['uuid'];
+  user_id: Scalars['uuid'];
 };
 
 
@@ -7008,6 +7277,11 @@ export type Subscription_RootCompany_Sizes_StreamArgs = {
 };
 
 
+export type Subscription_RootCreateMyProfileArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Subscription_RootEmploymentsArgs = {
   distinct_on?: InputMaybe<Array<Employments_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -7158,11 +7432,6 @@ export type Subscription_RootLocation_Types_StreamArgs = {
 };
 
 
-export type Subscription_RootPostJobArgs = {
-  id: Scalars['uuid'];
-};
-
-
 export type Subscription_RootProfile_TypesArgs = {
   distinct_on?: InputMaybe<Array<Profile_Types_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -7220,6 +7489,16 @@ export type Subscription_RootProfiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Profiles_Stream_Cursor_Input>>;
   where?: InputMaybe<Profiles_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegisterAsEmployerArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootRegisterAsSeekerArgs = {
+  id: Scalars['uuid'];
 };
 
 
