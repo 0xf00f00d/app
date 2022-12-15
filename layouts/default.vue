@@ -24,7 +24,7 @@
           <v-menu location="bottom left">
             <template v-slot:activator="{ props }" color="green">
               <v-btn width="5" color="transparent" class="text-none" variant="flat" v-bind="props" icon stacked rounded="pill">
-                <v-badge content="10" color="error">
+                <v-badge content="100" max="9" color="error">
                   <v-icon>mdi-bell-outline</v-icon>
                 </v-badge>
               </v-btn>
