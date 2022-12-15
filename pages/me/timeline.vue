@@ -1,15 +1,13 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12" sm="2">
-      </v-col>
-      <v-col cols="12" sm="2">
+      <v-col cols="12" sm="3">
         <v-card width="250" class="float-right my-2" rounded>
           <v-list :items="items"></v-list>
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="6">
         <div class="d-flex justify-center mb-6">
           <v-card
             class="py-2 my-2 justify-center"
@@ -18,10 +16,7 @@
             <template v-slot:title>
               <div class="text-h3">Career Timeline</div>
             </template>
-            <v-card-subtitle class="text-subtitle-1">
-              <em>No history</em>
-            </v-card-subtitle>
-            <v-container>
+            <v-container v-if="years">
               <v-timeline align="start">
                 <v-timeline-item
                   v-for="(year, i) in years"
@@ -46,6 +41,9 @@
                 </v-timeline-item>
               </v-timeline>
             </v-container>
+            <v-card-subtitle class="text-subtitle-1" v-else>
+              <em>No history</em>
+            </v-card-subtitle>
             <v-card-actions>
               <v-btn
                 size="x-large"
@@ -55,40 +53,23 @@
               >
                 Add entry
               </v-btn>
-              <!-- <v-btn
-                size="x-large"
-                color="default"
-                variant="outlined"
-                class="m-2"
-              >
-                Apply Now
-              </v-btn> -->
               <v-spacer />
             </v-card-actions>
-            <!-- <template v-slot:append>
-              <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text"></v-btn>
-            </template> -->
           </v-card>
         </div>
       </v-col>
 
-      <!-- <v-col cols="12" sm="2">
-      </v-col> -->
+      <v-col cols="12" sm="3">
+      </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script lang="ts" setup>
-import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken, useUserData } from '@nhost/vue'
-import { useUserStore } from '~~/stores/user'
-import gql from 'graphql-tag'
+useHead({
+  title: 'Career Timeline | HeyJobs',
+})
 
-const name = ref('A')
-const title = ref('')
-// const router = useRouter()
-const user = useUserStore()
-const { getToken, onLogin } = useApollo()
-const { nhost } = useNhostClient()
 const years = [
   {
     color: 'cyan',
@@ -134,57 +115,10 @@ const items = [
     value: 5,
   },
 ]
-const {
-  signInEmailPassword,
-  needsEmailVerification,
-  isLoading,
-  isSuccess,
-  isError,
-  error
-} = useSignInEmailPassword()
-const JOBS_QUERY: any = gql`
-  query Jobs {
-    allJobs {
-      title
-    }
-  }
-`
-// const { loading, result, error: gqErr } = useQuerySync(JOBS_QUERY)
-const jobs = ref<{[key: string]: any}>([])
-const token = useAccessToken()
-const isAuthenticated = useAuthenticated()
-const userData = useUserData()
 
 watchEffect(async () => {
-  user.setNewName(name.value)
-  console.log(
-    needsEmailVerification.value,
-    isLoading.value,
-    isSuccess.value,
-    isError.value,
-    error.value
-  )
-  if (token.value) {
-    nhost.graphql.setAccessToken(token.value as string)
-    const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
-    console.log('[data]: ', data)
-    console.log('[error]: ', gqError)
-    await onLogin(token.value as string)
-  }
-  /* if (!loading.value && !gqErr.value) {
-    jobs.value = result.value.jobs
-  }
-  console.log(
-    loading.value,
-    result.value,
-    gqErr.value,
-  ) */
 })
 
 onMounted(async () => {
-  await signInEmailPassword('seeker@example.com', 'password')
-  
-  console.log('[isAuthenticated]: ', isAuthenticated.value)
-  
 })
 </script>

@@ -8,13 +8,6 @@
       </v-col>
       <v-col cols="12" sm="4">
         <v-sheet min-height="1000" class="mb-2"></v-sheet>
-        <!-- <v-sheet min-height="150" class="mb-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet>
-        <v-sheet min-height="150" class="my-2"></v-sheet> -->
       </v-col>
       <v-col cols="12" sm="2">
         <v-sheet min-height="300"></v-sheet>
@@ -92,8 +85,8 @@
               <template v-slot:title>
                 {{ job.title }}
               </template>
-              <v-card-subtitle>YourCompany &middot; YourCompany@example.com &middot; redactedemail@domain.com</v-card-subtitle>
-              <v-card-subtitle>For those who code</v-card-subtitle>
+              <v-card-subtitle>{{ job.company.name }} &middot; {{ job.company.email }}</v-card-subtitle>
+              <v-card-subtitle class="text-truncate">{{ job.description }}</v-card-subtitle>
               <v-card-subtitle>
                 <v-chip color="green" text-color="white">
                   Python
@@ -101,11 +94,11 @@
                 <v-chip color="green" text-color="white">
                   Backend
                 </v-chip>
-                <v-chip color="green" text-color="white">
-                  Fulltime
+                <v-chip v-if="job.company.type" color="green" text-color="white">
+                  {{ job.company.type }}
                 </v-chip>
-                <v-chip color="green" text-color="white">
-                  Remote
+                <v-chip v-if="job.company.location" color="green" text-color="white">
+                  {{ job.company.location }}
                 </v-chip>
               </v-card-subtitle>
               <template v-slot:append>
@@ -142,6 +135,7 @@
 import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken } from '@nhost/vue'
 import { useUserStore } from '~~/stores/user'
 import gql from 'graphql-tag'
+import { Job } from '~~/models/graphql';
 
 const name = ref('A')
 const title = ref('')
@@ -163,9 +157,13 @@ const {
 } = useSignInEmailPassword()
 const JOBS_QUERY: any = gql`
   query Jobs {
-    allJobs {
+    jobs(order_by: {created_at: desc}) {
       id
       title
+      description
+      created_at
+      type
+      location
       company {
         name
         email
@@ -200,7 +198,7 @@ watchEffect(async () => {
     const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
     console.log('[data]: ', data)
     console.log('[error]: ', gqError)
-    jobs.value = data.allJobs
+    jobs.value = data.jobs
     dataLoading.value = false
     // await onLogin(token.value as string)
   }
