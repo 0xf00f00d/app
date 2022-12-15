@@ -1,7 +1,7 @@
-import { useAuthenticated, useUserRoles } from '@nhost/vue'
+import { useAuthenticated, useUserDefaultRole } from '@nhost/vue'
 
 export const useGuest = () => {
-  const roles = useUserRoles()
+  const role = useUserDefaultRole()
   const authenticated = useAuthenticated()
-  return useState('guest', () => roles.value.includes('anonymous'))
+  return useState('guest', () => role.value === 'anonymous')
 }
