@@ -10,6 +10,7 @@ export default defineNuxtPlugin((nuxt) => {
     theme: {
       defaultTheme: 'dark',
     },
+    ssr: true,
     // blueprint: md3,
   })
 
