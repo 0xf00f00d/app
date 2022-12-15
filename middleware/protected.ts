@@ -1,7 +1,8 @@
-import { DefaultNhostClient, NhostClient, useAuthenticated } from '@nhost/vue'
+import { DefaultNhostClient, NhostClient, useAuthenticated, useNhostClient } from '@nhost/vue'
 
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   const nuxt = useNuxtApp()
+  //nuxt.vueApp.provide(Symbol('default-nhost-client', ))
   
   nuxt.hooks.hook('page:start', (v) => {
     console.log('[page:start]')
@@ -17,8 +18,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
     subdomain,
     region,
   })
-  const authenticated = nhost.auth.isAuthenticated()
-  console.log('[nhost:auth]: ', authenticated)
+  const authenticated = await nhost.auth.isAuthenticatedAsync()
+  console.log('[nhost:auth]: ', authenticated, process.server)
   
   nuxt.vueApp.provide(DefaultNhostClient, nhost)
   
