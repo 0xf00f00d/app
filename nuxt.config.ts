@@ -3,6 +3,8 @@ export default defineNuxtConfig({
   css: [
     'vuetify/lib/styles/main.sass',
     '@mdi/font/css/materialdesignicons.min.css',
+    '@vueup/vue-quill/dist/vue-quill.snow.css',
+    '@vueup/vue-quill/dist/vue-quill.bubble.css',
   ],
   build: {
     transpile: ['vuetify', '@vue/apollo-composable'],
