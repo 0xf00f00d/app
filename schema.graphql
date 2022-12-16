@@ -13,6 +13,10 @@ directive @cached(
   ttl: Int! = 60
 ) on QUERY
 
+type ApplicationCheckResult {
+  found: Boolean
+}
+
 """
 Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
 """
@@ -29,9 +33,13 @@ input Boolean_comparison_exp {
 }
 
 type Company {
+  address: String
+  created_at: String
   email: String
   id: uuid
+  logo_url: String
   name: String
+  telephone: String
 }
 
 input EmployerProfileInput {
@@ -61,6 +69,8 @@ type Job {
   created_at: String
   description: String
   id: uuid
+  is_active: Boolean
+  jobType: JobType
   location: String
   title: String
   type: String
@@ -73,6 +83,11 @@ input JobInput {
   location: String
   title: String!
   type: String
+}
+
+type JobType {
+  type_display: String
+  type_name: String
 }
 
 input JobUserInput {
@@ -99,6 +114,12 @@ type Profile {
   email: String!
   name: String!
   user: User
+}
+
+input ProfileUpdateInput {
+  address: String
+  email: String
+  name: String
 }
 
 input SeekerProfileInput {
@@ -663,23 +684,6 @@ input applications_updates {
   """sets the columns of the filtered rows to the given values"""
   _set: applications_set_input
   where: applications_bool_exp!
-}
-
-"""
-fields of action: "applyJob"
-"""
-type applyJob {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Job
 }
 
 """
@@ -2993,7 +2997,7 @@ type companies {
     """filter the rows returned"""
     where: jobs_bool_exp
   ): jobs_aggregate!
-  logoUrl: String
+  logo_url: String
   name: String!
   size: String
   telephone: String
@@ -3033,7 +3037,7 @@ input companies_bool_exp {
   id: uuid_comparison_exp
   jobs: jobs_bool_exp
   jobs_aggregate: jobs_aggregate_bool_exp
-  logoUrl: String_comparison_exp
+  logo_url: String_comparison_exp
   name: String_comparison_exp
   size: String_comparison_exp
   telephone: String_comparison_exp
@@ -3067,7 +3071,7 @@ input companies_insert_input {
   employer_id: uuid
   id: uuid
   jobs: jobs_arr_rel_insert_input
-  logoUrl: String
+  logo_url: String
   name: String
   size: String
   telephone: String
@@ -3081,7 +3085,7 @@ type companies_max_fields {
   email: String
   employer_id: uuid
   id: uuid
-  logoUrl: String
+  logo_url: String
   name: String
   size: String
   telephone: String
@@ -3095,7 +3099,7 @@ type companies_min_fields {
   email: String
   employer_id: uuid
   id: uuid
-  logoUrl: String
+  logo_url: String
   name: String
   size: String
   telephone: String
@@ -3142,7 +3146,7 @@ input companies_order_by {
   employer_id: order_by
   id: order_by
   jobs_aggregate: jobs_aggregate_order_by
-  logoUrl: order_by
+  logo_url: order_by
   name: order_by
   size: order_by
   telephone: order_by
@@ -3174,7 +3178,7 @@ enum companies_select_column {
   id
 
   """column name"""
-  logoUrl
+  logo_url
 
   """column name"""
   name
@@ -3198,7 +3202,7 @@ input companies_set_input {
   email: String
   employer_id: uuid
   id: uuid
-  logoUrl: String
+  logo_url: String
   name: String
   size: String
   telephone: String
@@ -3223,7 +3227,7 @@ input companies_stream_cursor_value_input {
   email: String
   employer_id: uuid
   id: uuid
-  logoUrl: String
+  logo_url: String
   name: String
   size: String
   telephone: String
@@ -3250,7 +3254,7 @@ enum companies_update_column {
   id
 
   """column name"""
-  logoUrl
+  logo_url
 
   """column name"""
   name
@@ -3953,6 +3957,16 @@ type files_mutation_response {
 
   """data from the rows affected by the mutation"""
   returning: [files!]!
+}
+
+"""
+input type for inserting object relation for remote table "storage.files"
+"""
+input files_obj_rel_insert_input {
+  data: files_insert_input!
+
+  """upsert condition"""
+  on_conflict: files_on_conflict
 }
 
 """
@@ -4973,7 +4987,7 @@ type mutation_root {
   addUserRole(role: String!, user_id: String!): Profile
 
   """Apply for a job"""
-  applyJob(args: JobUserInput!): uuid!
+  applyJob(args: JobUserInput!): Job
   createMyProfile(user_id: String!): uuid!
 
   """
@@ -5678,10 +5692,10 @@ type mutation_root {
 
   """Create a Job Post"""
   postJob(arg: PostJobInput!): Job
-  registerAsEmployer(arg: EmployerProfileInput!): uuid!
+  registerAsEmployer(arg: EmployerProfileInput!): Profile!
 
   """Register as job seeker"""
-  registerAsSeeker(arg: SeekerProfileInput!): uuid!
+  registerAsSeeker(arg: SeekerProfileInput!): Profile!
   setDefaultRole(role: String!, user_id: String!): Profile
 
   """
@@ -5925,7 +5939,7 @@ type mutation_root {
   ): files_mutation_response
 
   """Update user's profile"""
-  updateMyProfile(args: JobUserInput!): uuid!
+  updateMyProfile(job_id: uuid!, updates: ProfileUpdateInput!): Profile
 
   """
   update single row of the table: "auth.users"
@@ -6392,7 +6406,7 @@ type mutation_root {
   ): [users_mutation_response]
 
   """Upload resume"""
-  uploadResume(args: JobUserInput!): uuid!
+  uploadResume(args: JobUserInput!): Profile
 }
 
 """column ordering options"""
@@ -6596,6 +6610,7 @@ type profiles {
     """filter the rows returned"""
     where: employments_bool_exp
   ): employments_aggregate!
+  has_resume: Boolean
   id: uuid!
   image: String
   name: String!
@@ -6603,6 +6618,10 @@ type profiles {
     """JSON select path"""
     path: String
   ): jsonb
+
+  """An object relationship"""
+  resumeFile: files
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6647,10 +6666,13 @@ input profiles_bool_exp {
   email: String_comparison_exp
   employments: employments_bool_exp
   employments_aggregate: employments_aggregate_bool_exp
+  has_resume: Boolean_comparison_exp
   id: uuid_comparison_exp
   image: String_comparison_exp
   name: String_comparison_exp
   profile_details: jsonb_comparison_exp
+  resumeFile: files_bool_exp
+  resume_file_id: uuid_comparison_exp
   telephone: String_comparison_exp
   type: String_comparison_exp
   updated_at: timestamptz_comparison_exp
@@ -6703,10 +6725,13 @@ input profiles_insert_input {
   deleted_at: timestamptz
   email: String
   employments: employments_arr_rel_insert_input
+  has_resume: Boolean
   id: uuid
   image: String
   name: String
   profile_details: jsonb
+  resumeFile: files_obj_rel_insert_input
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6723,6 +6748,7 @@ type profiles_max_fields {
   id: uuid
   image: String
   name: String
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6738,6 +6764,7 @@ type profiles_min_fields {
   id: uuid
   image: String
   name: String
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6781,10 +6808,13 @@ input profiles_order_by {
   deleted_at: order_by
   email: order_by
   employments_aggregate: employments_aggregate_order_by
+  has_resume: order_by
   id: order_by
   image: order_by
   name: order_by
   profile_details: order_by
+  resumeFile: files_order_by
+  resume_file_id: order_by
   telephone: order_by
   type: order_by
   updated_at: order_by
@@ -6819,6 +6849,9 @@ enum profiles_select_column {
   email
 
   """column name"""
+  has_resume
+
+  """column name"""
   id
 
   """column name"""
@@ -6829,6 +6862,9 @@ enum profiles_select_column {
 
   """column name"""
   profile_details
+
+  """column name"""
+  resume_file_id
 
   """column name"""
   telephone
@@ -6851,10 +6887,12 @@ input profiles_set_input {
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
+  has_resume: Boolean
   id: uuid
   image: String
   name: String
   profile_details: jsonb
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6878,10 +6916,12 @@ input profiles_stream_cursor_value_input {
   created_at: timestamptz
   deleted_at: timestamptz
   email: String
+  has_resume: Boolean
   id: uuid
   image: String
   name: String
   profile_details: jsonb
+  resume_file_id: uuid
   telephone: String
   type: String
   updated_at: timestamptz
@@ -6905,6 +6945,9 @@ enum profiles_update_column {
   email
 
   """column name"""
+  has_resume
+
+  """column name"""
   id
 
   """column name"""
@@ -6915,6 +6958,9 @@ enum profiles_update_column {
 
   """column name"""
   profile_details
+
+  """column name"""
+  resume_file_id
 
   """column name"""
   telephone
@@ -7043,12 +7089,6 @@ type query_root {
 
   """fetch data from the table: "applications" using primary key columns"""
   applications_by_pk(job_id: uuid!, user_id: uuid!): applications
-
-  """Apply for a job"""
-  applyJob(
-    """the unique id of an action"""
-    id: uuid!
-  ): applyJob
 
   """fetch data from the table: "auth.providers" using primary key columns"""
   authProvider(id: String!): authProviders
@@ -7571,9 +7611,10 @@ type query_root {
     """filter the rows returned"""
     where: files_bool_exp
   ): files_aggregate!
+  hasApplication(arg: JobUserInput!): ApplicationCheckResult
 
   """List all job applicants"""
-  jobApplicants(filter: JobUserInput): [Profile]
+  jobApplicants(job_id: uuid!): [Profile]
 
   """
   fetch data from the table: "job_types"
@@ -7708,7 +7749,8 @@ type query_root {
   myJobs(company_id: uuid!): [Job]
 
   """Get user's profile"""
-  myProfile(user_id: Int!): Profile
+  myProfile(user_id: uuid!): Profile
+  oneJob(id: uuid!): Job
 
   """
   fetch data from the table: "profile_types"
@@ -7795,28 +7837,6 @@ type query_root {
 
   """fetch data from the table: "profiles" using primary key columns"""
   profiles_by_pk(id: uuid!): profiles
-  registerAsEmployer(
-    """the unique id of an action"""
-    id: uuid!
-  ): registerAsEmployer
-
-  """Register as job seeker"""
-  registerAsSeeker(
-    """the unique id of an action"""
-    id: uuid!
-  ): registerAsSeeker
-
-  """Update user's profile"""
-  updateMyProfile(
-    """the unique id of an action"""
-    id: uuid!
-  ): updateMyProfile
-
-  """Upload resume"""
-  uploadResume(
-    """the unique id of an action"""
-    id: uuid!
-  ): uploadResume
 
   """fetch data from the table: "auth.users" using primary key columns"""
   user(id: uuid!): users
@@ -7860,40 +7880,6 @@ type query_root {
     """filter the rows returned"""
     where: users_bool_exp
   ): users_aggregate!
-}
-
-"""
-fields of action: "registerAsEmployer"
-"""
-type registerAsEmployer {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Profile!
-}
-
-"""
-fields of action: "registerAsSeeker"
-"""
-type registerAsSeeker {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Profile!
 }
 
 type subscription_root {
@@ -8008,12 +7994,6 @@ type subscription_root {
     """filter the rows returned"""
     where: applications_bool_exp
   ): [applications!]!
-
-  """Apply for a job"""
-  applyJob(
-    """the unique id of an action"""
-    id: uuid!
-  ): applyJob
 
   """fetch data from the table: "auth.providers" using primary key columns"""
   authProvider(id: String!): authProviders
@@ -8985,28 +8965,6 @@ type subscription_root {
     """filter the rows returned"""
     where: profiles_bool_exp
   ): [profiles!]!
-  registerAsEmployer(
-    """the unique id of an action"""
-    id: uuid!
-  ): registerAsEmployer
-
-  """Register as job seeker"""
-  registerAsSeeker(
-    """the unique id of an action"""
-    id: uuid!
-  ): registerAsSeeker
-
-  """Update user's profile"""
-  updateMyProfile(
-    """the unique id of an action"""
-    id: uuid!
-  ): updateMyProfile
-
-  """Upload resume"""
-  uploadResume(
-    """the unique id of an action"""
-    id: uuid!
-  ): uploadResume
 
   """fetch data from the table: "auth.users" using primary key columns"""
   user(id: uuid!): users
@@ -9081,40 +9039,6 @@ input timestamptz_comparison_exp {
   _lte: timestamptz
   _neq: timestamptz
   _nin: [timestamptz!]
-}
-
-"""
-fields of action: "updateMyProfile"
-"""
-type updateMyProfile {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Profile
-}
-
-"""
-fields of action: "uploadResume"
-"""
-type uploadResume {
-  """the time at which this action was created"""
-  created_at: timestamptz!
-
-  """errors related to the invocation"""
-  errors: json
-
-  """the unique id of an action"""
-  id: uuid!
-
-  """the output fields of this action"""
-  output: Profile
 }
 
 """
