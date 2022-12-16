@@ -43,13 +43,13 @@
                     size="150"
                     rounded="0"
                   >
-                    <v-img cover :src="company?.logoUrl ?? avatarUrl ?? userData?.avatarUrl"></v-img>
+                    <v-img cover :src="company?.logo_url ?? avatarUrl ?? userData?.avatarUrl"></v-img>
                   </v-avatar>
                   <v-list-item
                     class="text-white"
                   >
                     <v-list-item-title>
-                      {{ name }}
+                      {{ company?.name ?? name ?? userData?.displayName }}
                       <v-tooltip text="verified user" class="p-0">
                         <template v-slot:activator="{ props }">
                           <v-icon v-bind="props" icon="mdi-check" color="blue" size="x-small"></v-icon>
@@ -57,7 +57,7 @@
                       </v-tooltip>
                     </v-list-item-title>
                     <v-list-item-subtitle>
-                      {{ company?.email ?? email ?? userData?.email }}
+                      {{ company?.email ?? userEmail ?? userData?.email }}
                     </v-list-item-subtitle>
                     <v-list-item-subtitle>
                       <v-icon icon="mdi-cake"></v-icon> {{ userData?.createdAt }}
@@ -117,7 +117,7 @@
                   clearable
                 ></v-text-field>
                 <v-text-field
-                  v-model="email"
+                  v-model="userEmail"
                   :counter="100"
                   label="Email address"
                   type="email"
@@ -167,8 +167,8 @@ const defaultRole = useUserDefaultRole()
 const isSeeker = useIsSeeker()
 const isEmployer = useIsEmployer()
 const displayName = useUserDisplayName()
-const email = useUserEmail()
-const { company, error } = useCompany()
+const userEmail = useUserEmail()
+const { getCompany, company, error } = useCompany()
 const avatarUrl = useUserAvatarUrl()
 
 const editProfileClick = async () => {
@@ -217,10 +217,22 @@ const aboutMeContent = ref('This is about me')
 const pageLoading = ref(true)
 const verified = ref(false)
 const name = ref<string>()
+const email = ref<string>()
+
+const updateProfile = async () => {
+  if (isEmployer) {
+    return
+  }
+  
+  if (isSeeker) {
+    return
+  }
+}
 
 watchEffect(async () => {
+  console.log('[watchEffect#isAuthenticated]: ', isAuthenticated.value)
   if (!isAuthenticated.value) {
-    await navigateTo('/')
+    // await navigateTo('/')
   }
   if (token.value) {
     /* nhost.graphql.setAccessToken(token.value as string)
@@ -236,6 +248,7 @@ watchEffect(async () => {
     userData.value!.email = company.value?.email ?? ''
   }
   name.value = company.value?.name || displayName.value || userData.value?.displayName
+  userEmail.value = company.value?.email || userEmail.value || userData.value?.email
   /* if (!loading.value && !gqErr.value) {
     jobs.value = result.value.jobs
   }
@@ -251,7 +264,11 @@ onMounted(async () => {
   editor.value = QuillEditor
   pageLoading.value = false
   
-  console.log('[isAuthenticated]: ', isAuthenticated.value)
+  console.log('[onMounted#isAuthenticated]: ', isAuthenticated.value)
   
+  if (!isAuthenticated.value) {
+    await navigateTo('/')
+  }
+  await getCompany()
 })
 </script>

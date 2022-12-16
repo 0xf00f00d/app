@@ -23,12 +23,12 @@
         <div class="d-flex justify-center mb-6">
           <v-card
             class="py-2 my-2 justify-center"
-            prepend-avatar="https://cdn.vuetifyjs.com/images/john.jpg"
+            :prepend-avatar="job?.company?.logo_url ?? 'https://cdn.vuetifyjs.com/images/john.jpg'"
           >
             <template v-slot:title>
-              Software Engineer
+              {{ job?.title }}
             </template>
-            <v-card-subtitle class="text-subtitle-1">YourCompany &middot; YourCompany@example.com</v-card-subtitle>
+            <v-card-subtitle class="text-subtitle-1">{{ job?.company?.name }} &middot; {{ job?.company?.email }}</v-card-subtitle>
             <v-card-subtitle class="my-2">
               <v-chip class="mr-1">
                 Python
@@ -37,10 +37,10 @@
                 Backend
               </v-chip>
               <v-chip class="mx-1">
-                Fulltime
+                {{ job?.jobType?.type_display }}
               </v-chip>
               <v-chip class="mx-1">
-                Remote
+                {{ job?.location }}
               </v-chip>
             </v-card-subtitle>
             <v-card-subtitle class="text-wrap text-body-1">
@@ -98,10 +98,10 @@
 </template>
   
 <script lang="ts" setup>
-import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken, useUserDefaultRole, useUserId } from '@nhost/vue'
+import { useAuthenticated, useSignInEmailPassword, useNhostClient, useAccessToken, useUserDefaultRole, useUserId, useUserAvatarUrl } from '@nhost/vue'
 import { useUserStore } from '~~/stores/user'
 import gql from 'graphql-tag'
-import { Job } from '~~/models/graphql';
+import { Job } from '~~/models/graphql'
 
 const router = useRouter()
 
@@ -109,13 +109,14 @@ const home = async () => {
   await navigateTo('/')
 }
 
-const name = ref('A')
-const title = ref('')
-// const router = useRouter()
-const user = useUserStore()
 const { getToken, onLogin } = useApollo()
 const { nhost } = useNhostClient()
 const defaultRole = useUserDefaultRole()
+const userId = useUserId()
+const isEmployer = useIsEmployer()
+const isSeeker = useIsSeeker()
+const route = useRoute()
+const avatarUrl = useUserAvatarUrl()
 
 const employerItems = [
   {
@@ -139,43 +140,28 @@ const employerItems = [
     roles: ['user'],
   },
 ]
-const seekerItems = [
-  {
-    title: 'Pending',
-    roles: ['seeker'],
-  },
-  {
-    title: 'Approved',
-    roles: ['seeker'],
-  },
-  {
-    title: 'Rejected',
-    roles: ['seeker'],
-  },
-]
-const jobs = ref<{[key: string]: any}>([])
-const token = useAccessToken()
-const isAuthenticated = useAuthenticated()
-const route = useRoute()
-const userId = useUserId()
-const jobId = ref<string>()
+
+const jobId = computed(() => router.currentRoute.value.params.id)
 const hasApplication = ref(false)
-const isEmployer = useIsEmployer()
-const isSeeker = useIsSeeker()
-const job = ref<any>()
+const job = ref<Job>()
 
 const JOB_QUERY: any = gql`
   query JobQuery($id: uuid!, $arg: JobUserInput!) {
-    jobs(where: { id: { _eq: $id }}) {
+    oneJob(id: $id) {
       id
       title
       description
       location
       type
       is_active
+      jobType {
+        type_name
+        type_display
+      }
       company {
         name
         email
+        logo_url
       }
     }
     hasApplication(arg: $arg) {
@@ -185,7 +171,6 @@ const JOB_QUERY: any = gql`
 `
 
 const quickApply = async () => {
-  console.log('[route]: ', route);
   const QUICK_APPLY: any = gql`
     mutation QuickApply($args: JobUserInput!) {
       applyJob(args: $args) {
@@ -193,6 +178,7 @@ const quickApply = async () => {
         description
         type
         location
+        jobType
         company {
           name
           email
@@ -206,25 +192,41 @@ const quickApply = async () => {
       user_id: userId.value,
     },
   })
+  console.log('[apply#data]: ', data);
+  if (data.applyJob) {
+    navigateTo('/')
+  }
 }
 
 watchEffect(async () => {
-  console.log('[route]: ', route);
   if (job.value) {
-    hasApplication.value = job.value.data.hasApplication.found
   }
 })
 
+onBeforeMount(() => {
+  const r = useRoute()
+  const rtr = useRouter()
+  rtr.currentRoute
+  console.log('[beforeMount#r]: ', r.params);
+  
+})
+
 onMounted(async () => {
-  jobId.value = route.params.id as string
-  job.value = await nhost.graphql.request(JOB_QUERY, {
-    id: jobId.value,
-    arg: {
-      job_id: jobId.value,
-      user_id: userId.value,
-    }
-  })
-  console.log('[jobData]: ', job.value);
+  console.log('[route]: ', route.params, router.currentRoute.value.params)
+  console.log('[jobId]: ', jobId)
+  
+  if (!job.value) {
+    const res = await nhost.graphql.request(JOB_QUERY, {
+      id: jobId.value,
+      arg: {
+        job_id: jobId.value,
+        user_id: userId.value,
+      }
+    })
+    job.value = res.data.oneJob
+    hasApplication.value = res.data.hasApplication.found
+    console.log('[jobData]: ', res, job.value)
+  }
 })
 </script>
   

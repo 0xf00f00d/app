@@ -54,7 +54,7 @@
             clearable
           ></v-text-field>
           <client-only>
-            <editor theme="snow" toolbar="full" :content="content" placeholder="job description" />
+            <editor theme="snow" toolbar="full" v-model:content="content" placeholder="job description" />
           </client-only>
           <!-- <v-textarea rows="15" label="Description"></v-textarea> -->
           <v-select
@@ -132,7 +132,7 @@ const anonymous = useUserIsAnonymous()
 const roles = useUserRoles()
 const userId = useUserId()
 const defaultRole = useUserDefaultRole()
-const { company, error } = useCompany()
+const { getCompany, company, error } = useCompany()
 const user = useUserData()
 
 const editor = shallowRef()
@@ -141,7 +141,7 @@ const description = ref('')
 const pageLoading = ref(true)
 const dataLoading = ref(true)
 const dark = ref(theme.current.value.dark)
-const content = ref('')
+const content = ref<any>()
 const jobType = ref('')
 const jobLocation = ref('')
 const jobExperience = ref('')
@@ -164,9 +164,10 @@ watchEffect(async () => {
   }
   console.log('[company]: ', company.value, error.value);
   
-  console.log('[content]: ', content.value);
-  
-  description.value = content.value
+  if (content.value) {
+    console.log('[content]: ', content.value);
+    description.value = content.value.ops?.shift()?.insert
+  }
 })
 
 onMounted(async () => {
@@ -175,8 +176,13 @@ onMounted(async () => {
   pageLoading.value = false
   // dark.value = theme.current.value.dark
   console.log('[isAuthenticated]: ', isAuthenticated.value)
-  // await getCompany()
+  await getCompany()
 })
+
+const saveDraft = async () => {
+  const saveDraftMutation: any = gql`
+  `
+}
 
 const postJob = async () => {
   const postJobMutation: any = gql`
@@ -211,7 +217,7 @@ const postJob = async () => {
   `
   await nhost.graphql.request(postJobSub, { id: data.postJob }) */
   
-  await navigateTo('/')
+  await navigateTo('/my-jobs')
 }
 
 </script>

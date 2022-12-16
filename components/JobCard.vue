@@ -1,62 +1,38 @@
 <template>
-  <v-card
-    class="mx-auto"
-    max-width="344"
-  >
-    <v-card-text>
-      <div>Word of the Day</div>
-      <p class="text-h4 text--primary">
-        el·ee·mos·y·nar·y
-      </p>
-      <p>adjective</p>
-      <div class="text--primary">
-        relating to or dependent on charity; charitable.<br>
-        "an eleemosynary educational institution."
-      </div>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn
-        variant="text"
-        color="teal-accent-4"
-        @click="reveal = true"
-      >
-        Learn More
-      </v-btn>
-    </v-card-actions>
-
-    <v-expand-transition>
-      <v-card
-        v-if="reveal"
-        class="transition-fast-in-fast-out v-card--reveal"
-        style="height: 100%;"
-      >
-        <v-card-text class="pb-0">
-          <p class="text-h4 text--primary">
-            Origin
-          </p>
-          <p>late 16th century (as a noun denoting a place where alms were distributed): from medieval Latin eleemosynarius, from late Latin eleemosyna ‘alms’, from Greek eleēmosunē ‘compassion’ </p>
-        </v-card-text>
-        <v-card-actions class="pt-0">
-          <v-btn
-            variant="text"
-            color="teal-accent-4"
-            @click="reveal = false"
-          >
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
-  </v-card>
+  <router-link :to="`/job/${job.id}`">
+    <v-card
+      class="py-2 my-2"
+      :key="job?.id"
+      prepend-avatar="https://cdn.vuetifyjs.com/images/john.jpg"
+    >
+      <template v-slot:title>
+        {{ job.title }}
+      </template>
+      <v-card-subtitle>{{ job.company?.name }} &middot; {{ job.company?.email }}</v-card-subtitle>
+      <v-card-subtitle class="text-truncate">{{ job?.description }}</v-card-subtitle>
+      <v-card-subtitle>
+        <v-chip color="green" text-color="white">
+          Python
+        </v-chip>
+        <v-chip color="green" text-color="white">
+          Backend
+        </v-chip>
+        <v-chip v-if="job.type" color="green" text-color="white">
+          {{ job.type }}
+        </v-chip>
+        <v-chip v-if="job.location" color="green" text-color="white">
+          {{ job.location }}
+        </v-chip>
+      </v-card-subtitle>
+      <template v-slot:append>
+        <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text" @click.prevent="bookmark(job)"></v-btn>
+      </template>
+    </v-card>
+  </router-link>
 </template>
 <script lang="ts" setup>
-const reveal = ref(false)
+import { Job } from '~~/models/graphql'
+const props = withDefaults(defineProps<{ job: Job }>(), {})
+
+const bookmark = (j: Job) => {}
 </script>
-<style>
-.v-card--reveal {
-  bottom: 0;
-  opacity: 1 !important;
-  position: absolute;
-  width: 100%;
-}
-</style>

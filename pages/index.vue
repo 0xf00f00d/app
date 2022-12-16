@@ -76,36 +76,7 @@
       </v-col>
       <v-col cols="12" sm="4" v-else>
         <template v-for="(job, i) in jobs">
-          <router-link :to="`/job/${job.id}`">
-            <v-card
-              class="py-2 my-2"
-              :key="job.id"
-              prepend-avatar="https://cdn.vuetifyjs.com/images/john.jpg"
-            >
-              <template v-slot:title>
-                {{ job.title }}
-              </template>
-              <v-card-subtitle>{{ job.company.name }} &middot; {{ job.company.email }}</v-card-subtitle>
-              <v-card-subtitle class="text-truncate">{{ job.description }}</v-card-subtitle>
-              <v-card-subtitle>
-                <v-chip color="green" text-color="white">
-                  Python
-                </v-chip>
-                <v-chip color="green" text-color="white">
-                  Backend
-                </v-chip>
-                <v-chip v-if="job.company.type" color="green" text-color="white">
-                  {{ job.company.type }}
-                </v-chip>
-                <v-chip v-if="job.company.location" color="green" text-color="white">
-                  {{ job.company.location }}
-                </v-chip>
-              </v-card-subtitle>
-              <template v-slot:append>
-                <v-btn size="x-large" icon="mdi-bookmark-outline" variant="text" @click.prevent="bookmark(job)"></v-btn>
-              </template>
-            </v-card>
-          </router-link>
+          <job-card :job="job"></job-card>
         </template>
       </v-col>
 
@@ -147,17 +118,9 @@ const { nhost } = useNhostClient()
 const pageLoading = ref(true)
 const dataLoading = ref(true)
 
-const {
-  signInEmailPassword,
-  needsEmailVerification,
-  isLoading,
-  isSuccess,
-  isError,
-  error
-} = useSignInEmailPassword()
 const JOBS_QUERY: any = gql`
   query Jobs {
-    jobs(order_by: {created_at: desc}) {
+    allJobs {
       id
       title
       description
@@ -172,7 +135,7 @@ const JOBS_QUERY: any = gql`
   }
 `
 // const { loading, result, error: gqErr } = useQuerySync(JOBS_QUERY)
-const jobs = ref<{[key: string]: any}>([])
+const jobs = ref<Job[]>([])
 const token = useAccessToken()
 const isAuthenticated = useAuthenticated()
 
@@ -185,20 +148,12 @@ useHead({
 }) */
 
 watchEffect(async () => {
-  user.setNewName(name.value)
-  console.log(
-    needsEmailVerification.value,
-    isLoading.value,
-    isSuccess.value,
-    isError.value,
-    error.value
-  )
   if (token.value) {
     nhost.graphql.setAccessToken(token.value as string)
     const { data, error: gqError } = await nhost.graphql.request(JOBS_QUERY)
     console.log('[data]: ', data)
     console.log('[error]: ', gqError)
-    jobs.value = data.jobs
+    jobs.value = data.allJobs
     dataLoading.value = false
     // await onLogin(token.value as string)
   }
